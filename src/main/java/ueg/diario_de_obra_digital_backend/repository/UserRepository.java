@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import ueg.diario_de_obra_digital_backend.model.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<Long, User> {
+public interface UserRepository extends JpaRepository<User, Long> {
   UserDetails findByLogin(String login);
 }
