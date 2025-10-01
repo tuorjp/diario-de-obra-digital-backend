@@ -8,6 +8,7 @@ import ueg.diario_de_obra_digital_backend.enums.UserRole;
 @Setter
 public class RegisterDTO {
   public String login;
+  public String name;
   public String password;
   public UserRole role;
 }
