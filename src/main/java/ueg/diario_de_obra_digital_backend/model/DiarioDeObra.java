@@ -52,6 +52,7 @@ public class DiarioDeObra implements Serializable {
   private List<String> visitas;
 
   @Lob //Para textos mais longos
+  @Column(columnDefinition = "TEXT")
   private String observacoes;
 
   @Enumerated(EnumType.STRING)
