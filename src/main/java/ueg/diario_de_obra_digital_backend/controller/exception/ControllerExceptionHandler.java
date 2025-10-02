@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ueg.diario_de_obra_digital_backend.service.exception.FileNotFoundInStorageException;
 import ueg.diario_de_obra_digital_backend.service.exception.FileStorageCreationException;
 import ueg.diario_de_obra_digital_backend.service.exception.InvalidFileName;
+import ueg.diario_de_obra_digital_backend.service.exception.UserNotFoundException;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {
@@ -22,6 +23,11 @@ public class ControllerExceptionHandler {
 
   @ExceptionHandler(InvalidFileName.class)
   public ResponseEntity<String> handleInvalidFileName(InvalidFileName e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+  }
+
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
   }
 }
