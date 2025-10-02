@@ -3,10 +3,15 @@ package ueg.diario_de_obra_digital_backend.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.SQLDelete;
 import ueg.diario_de_obra_digital_backend.enums.DiarioStatus;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +21,11 @@ import java.util.Set;
 @Table(name = "diarios_de_obra", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"obra_id", "data"}) //RN 03 - Unicidade de diário
 })
+// Anotação para delete lógico
+@SQLDelete(sql = "UPDATE diarios_de_obra SET deletado = true WHERE id = ?")
+// Anotação para filtrar os registros deletados. Passo um: definição; passo dois: aplicação do filtro
+@FilterDef(name = "deletedDiarioFilter", defaultCondition = "deletado = false")
+@Filter(name = "deletedDiarioFilter")
 public class DiarioDeObra implements Serializable {
 
   @Id
@@ -33,23 +43,23 @@ public class DiarioDeObra implements Serializable {
   private String condicaoClimatica;
 
   @OneToMany(mappedBy = "diario", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<DiarioEquipamento> equipamentos;
+  private Set<DiarioEquipamento> equipamentos = new HashSet<>();
 
   @OneToMany(mappedBy = "diario", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<DiarioMaoDeObra> maoDeObra;
+  private Set<DiarioMaoDeObra> maoDeObra = new HashSet<>();
 
   @OneToMany(mappedBy = "diario", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<DiarioServico> servicosExecutados;
+  private Set<DiarioServico> servicosExecutados = new HashSet<>();
 
   @ElementCollection //Para armazenar a lista de nomes/caminhos dos arquivos de fotos
   @CollectionTable(name = "diario_fotos", joinColumns = @JoinColumn(name = "diario_id"))
   @Column(name = "foto_url")
-  private List<String> fotos;
+  private List<String> fotos = new ArrayList<>();
 
   @ElementCollection
   @CollectionTable(name = "diario_visitas", joinColumns = @JoinColumn(name = "diario_id"))
   @Column(name = "visita_registro")
-  private List<String> visitas;
+  private List<String> visitas = new ArrayList<>();
 
   @Lob //Para textos mais longos
   @Column(columnDefinition = "TEXT")
