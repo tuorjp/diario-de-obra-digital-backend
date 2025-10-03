@@ -36,3 +36,5 @@ spring.jpa.hibernate.ddl-auto=validate
 # Chave secreta para geração de tokens JWT
 api.security.token.secret=sua_chave_secreta_aqui
 ```
+
+O restante das configurações em ``application.properties`` pode permanecer como no arquivo deste repositório.
