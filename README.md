@@ -8,9 +8,9 @@ Siga os passos abaixo para configurar seu ambiente de desenvolvimento.
 
 ### Pré-requisitos
 
--   **Java 23+** (o projeto está configurado para Java 23, mas deve ser compatível com versões mais recentes do Java)
--   **Maven 3.8+**
--   **PostgreSQL 17+**
+-   **Java 23**
+-   **Maven 3**
+-   **PostgreSQL 17**
 -   Uma IDE de sua preferência (as instruções abaixo são para o **IntelliJ IDEA**)
 
 ### Banco de Dados
