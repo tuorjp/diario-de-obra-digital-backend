@@ -50,20 +50,17 @@ public class User implements UserDetails {
       return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
     } else {
       // Mapeia as outras roles diretamente. Ex: GESTOR -> ROLE_GESTOR
-      // Isso dá mais flexibilidade para as permissões.
       return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
     }
   }
 
   @Override
   public String getPassword() {
-    // CORREÇÃO CRÍTICA: Deve retornar a senha real do usuário
     return this.password;
   }
 
   @Override
   public String getUsername() {
-    // CORREÇÃO CRÍTICA: Deve retornar o campo usado para login
     return this.login;
   }
 }
