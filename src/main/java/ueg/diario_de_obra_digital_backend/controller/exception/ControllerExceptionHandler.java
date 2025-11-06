@@ -9,8 +9,7 @@ import ueg.diario_de_obra_digital_backend.service.exception.FileNotFoundInStorag
 import ueg.diario_de_obra_digital_backend.service.exception.FileStorageCreationException;
 import ueg.diario_de_obra_digital_backend.service.exception.InvalidFileName;
 import ueg.diario_de_obra_digital_backend.service.exception.UserNotFoundException;
-
-import javax.naming.AuthenticationException;
+import org.springframework.security.core.AuthenticationException;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {

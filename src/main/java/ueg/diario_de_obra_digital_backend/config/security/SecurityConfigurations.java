@@ -39,9 +39,9 @@ public class SecurityConfigurations {
                   "/webjars/**"
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/auth/login").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/auth/register").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/user/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/test").hasRole("ADMIN")
                 .anyRequest().authenticated()
         )
