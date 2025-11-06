@@ -2,11 +2,11 @@
 
 -- 1. Inserir usuários usando a coluna 'login' e o hash real da senha "password"
 INSERT INTO users (login, name, password, role) VALUES
-('admin', 'Admin do Sistema', '$2a$10$3yT89DbD1I0aLrn.3sAUg.WXYx5yV50Et2bE6l1aE9o2o8mAYNgHe', 'ADMIN'),
-('gestor', 'Gestor de Contratos', '$2a$10$3yT89DbD1I0aLrn.3sAUg.WXYx5yV50Et2bE6l1aE9o2o8mAYNgHe', 'GESTOR'),
-('engenheiro', 'Fulano de Tal', '$2a$10$3yT89DbD1I0aLrn.3sAUg.WXYx5yV50Et2bE6l1aE9o2o8mAYNgHe', 'ENGENHEIRO'),
-('fiscal', 'Ciclano da Silva', '$2a$10$3yT89DbD1I0aLrn.3sAUg.WXYx5yV50Et2bE6l1aE9o2o8mAYNgHe', 'FISCAL'),
-('cliente', 'Cliente Final', '$2a$10$3yT89DbD1I0aLrn.3sAUg.WXYx5yV50Et2bE6l1aE9o2o8mAYNgHe', 'USER')
+('admin', 'Admin do Sistema', '$2a$10$nT/ttMe2.ZgR5qvHgO04k.vHIfsEGjAwAFaZyaBcCjU/BffQT27ki', 'ADMIN'),
+('gestor', 'Gestor de Contratos', '$2a$10$nT/ttMe2.ZgR5qvHgO04k.vHIfsEGjAwAFaZyaBcCjU/BffQT27ki', 'GESTOR'),
+('engenheiro', 'Fulano de Tal', '$2a$10$nT/ttMe2.ZgR5qvHgO04k.vHIfsEGjAwAFaZyaBcCjU/BffQT27ki', 'ENGENHEIRO'),
+('fiscal', 'Ciclano da Silva', '$2a$10$nT/ttMe2.ZgR5qvHgO04k.vHIfsEGjAwAFaZyaBcCjU/BffQT27ki', 'FISCAL'),
+('cliente', 'Cliente Final', '$2a$10$nT/ttMe2.ZgR5qvHgO04k.vHIfsEGjAwAFaZyaBcCjU/BffQT27ki', 'USER')
 ON CONFLICT (login) DO NOTHING;
 
 -- 2. Popular as listas pré-definidas (sem alterações)

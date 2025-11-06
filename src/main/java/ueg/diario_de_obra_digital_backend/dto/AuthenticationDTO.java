@@ -8,4 +8,12 @@ import lombok.Setter;
 public class AuthenticationDTO {
   public String login;
   public String password;
+
+  @Override
+  public String toString() {
+    return "AuthenticationDTO{" +
+      "login='" + login + '\'' +
+      ", password='" + password + '\'' +
+      '}';
+  }
 }

@@ -15,15 +15,18 @@ import ueg.diario_de_obra_digital_backend.dto.LoginResponseDTO;
 import ueg.diario_de_obra_digital_backend.model.User;
 
 @RestController
-@RequestMapping("auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
   private final TokenService tokenService;
   private final AuthenticationManager authenticationManager;
 
-  @PostMapping("login")
+  @PostMapping("/login")
   public ResponseEntity<LoginResponseDTO> login(@RequestBody AuthenticationDTO data) {
     // Cria um token de autenticação com as credenciais recebidas
+    System.out.println("ALCANÇOU LOGIN CONTROLLER");
+    System.out.println(data);
+
     var usernamePassword = new UsernamePasswordAuthenticationToken(data.getLogin(), data.getPassword());
 
     // O AuthenticationManager usa o seu AuthorizationService por baixo dos panos para
