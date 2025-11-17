@@ -16,7 +16,7 @@ Siga os passos abaixo para configurar seu ambiente de desenvolvimento.
 ### Banco de Dados
 
 1.  Abra seu cliente PostgreSQL (pgAdmin, DBeaver, etc.).
-2.  Crie um novo banco de dados. Um nome recomendado é `diario_obra_ueg`.
+2.  Crie um novo banco de dados. Um nome recomendado é `diario-de-obra-ueg`.
 3.  Você **não precisa** criar nenhuma tabela. As migrations do Flyway cuidarão disso automaticamente.
 
 ### Configuração da Aplicação
@@ -26,7 +26,7 @@ Siga os passos abaixo para configurar seu ambiente de desenvolvimento.
 
 ```properties
 # Configuração do Banco de Dados PostgreSQL
-spring.datasource.url=jdbc:postgresql://localhost:5432/diario_obra_ueg
+spring.datasource.url=jdbc:postgresql://localhost:5432/diario-de-obra-ueg
 spring.datasource.username=seu_usuario_postgres
 spring.datasource.password=sua_senha_postgres
 
