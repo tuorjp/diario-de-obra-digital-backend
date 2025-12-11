@@ -25,6 +25,7 @@ public class DatabaseSeeder {
       user.setPassword(passwordEncoder.encode("123456"));
       user.setRole(UserRole.ADMIN);
       user.setName("Admin");
+      user.setStatus(true);
 
       userRepository.save(user);
       System.out.println("SOWED...");

@@ -10,4 +10,5 @@ public class EditUserDTO {
   public String password;
   public UserRole role;
   public Long id;
+  public boolean status;
 }

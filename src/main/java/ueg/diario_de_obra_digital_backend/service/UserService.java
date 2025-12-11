@@ -10,6 +10,7 @@ import ueg.diario_de_obra_digital_backend.dto.RegisterDTO;
 import ueg.diario_de_obra_digital_backend.model.User;
 import ueg.diario_de_obra_digital_backend.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -25,6 +26,8 @@ public class UserService {
 
     String encryptedPassword = passwordEncoder.encode(data.getPassword());
     User newUser = new User(data.getLogin(), data.getName(), encryptedPassword, data.getRole());
+
+    newUser.setStatus(true);
 
     userRepository.save(newUser);
   }
@@ -44,5 +47,23 @@ public class UserService {
     existentUser.setLogin(user.getLogin());
 
     this.userRepository.save(existentUser);
+  }
+
+  public User findByLogin(String login) {
+    User user = (User) this.userRepository.findByLogin(login);
+
+    if(user == null) {
+      throw new UserNotFoundException("Usuário não encontrado");
+    }
+
+    return user;
+  }
+
+  public User findById(Long id) {
+    return this.userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+  }
+
+  public List<User>findAll() {
+    return this.userRepository.findAll();
   }
 }

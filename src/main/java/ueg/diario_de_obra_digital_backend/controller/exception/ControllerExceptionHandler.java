@@ -5,10 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ueg.diario_de_obra_digital_backend.service.exception.FileNotFoundInStorageException;
-import ueg.diario_de_obra_digital_backend.service.exception.FileStorageCreationException;
-import ueg.diario_de_obra_digital_backend.service.exception.InvalidFileName;
-import ueg.diario_de_obra_digital_backend.service.exception.UserNotFoundException;
+import ueg.diario_de_obra_digital_backend.service.exception.*;
 import org.springframework.security.core.AuthenticationException;
 
 @RestControllerAdvice
@@ -33,8 +30,13 @@ public class ControllerExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
   }
 
+  @ExceptionHandler(DuplicatedTupleException.class)
+  public ResponseEntity<String> handleDuplicatedTupleException(DuplicatedTupleException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+  }
+
   @ExceptionHandler(AuthenticationException.class)
-  @ResponseStatus(HttpStatus.UNAUTHORIZED) //401
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ResponseEntity<String> handleAuthenticationException(AuthenticationException e) {
     System.err.println("!!!!!!!!!! FALHA NA AUTENTICAÇÃO !!!!!!!!!!!");
     System.err.println("CAUSA: " + e.getClass().getSimpleName());
