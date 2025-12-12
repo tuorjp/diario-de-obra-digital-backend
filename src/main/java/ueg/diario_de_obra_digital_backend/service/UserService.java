@@ -51,6 +51,14 @@ public class UserService {
 
         User existentUser = existentUserOptional.get();
 
+        if (dto.getCrea() != null && !dto.getCrea().isBlank()) {
+            User userWithCrea = userRepository.findByCrea(dto.getCrea());
+            // Se achou alguém com esse CREA e esse alguém NÃO É o usuário que estamos editando
+            if (userWithCrea != null && !userWithCrea.getId().equals(existentUser.getId())) {
+                throw new DuplicatedTupleException("Este registro CREA já está cadastrado para outro usuário.");
+            }
+        }
+
         existentUser.setName(dto.getName());
         existentUser.setRole(dto.getRole());
         existentUser.setLogin(dto.getLogin());

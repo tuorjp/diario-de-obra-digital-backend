@@ -8,4 +8,5 @@ import ueg.diario_de_obra_digital_backend.model.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
   UserDetails findByLogin(String login);
+  User findByCrea(String crea);
 }
