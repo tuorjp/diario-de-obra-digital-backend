@@ -19,7 +19,7 @@ public class EditUserDTO {
     private String creaUf;
     private String cpf;
     private LocalDate admissionDate;
-    private String status;
+    private boolean enabled;
 
     private String address;
     private String addressNumber;

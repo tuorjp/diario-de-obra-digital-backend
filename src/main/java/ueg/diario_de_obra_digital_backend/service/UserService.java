@@ -67,7 +67,6 @@ public class UserService {
         existentUser.setCpf(dto.getCpf());
 
 
-        existentUser.setStatus(dto.getStatus());
         existentUser.setAddress(dto.getAddress());
         existentUser.setAddressNumber(dto.getAddressNumber());
         existentUser.setZipCode(dto.getZipCode());

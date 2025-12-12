@@ -21,6 +21,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class User implements UserDetails {
+
     @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +30,7 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String login;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 40)
     private String name;
 
     @Column(nullable = false)
@@ -56,8 +57,10 @@ public class User implements UserDetails {
     @Column(name = "creation_date", updatable = false)
     private LocalDate creationDate;
 
-    private String status;
+    @Column(nullable = false)
+    private boolean enabled = true;
 
+    // ... (address, addressNumber, zipCode, complement, city, state mantidos) ...
     private String address;
 
     @Column(name = "address_number")
@@ -73,11 +76,13 @@ public class User implements UserDetails {
     @Column(length = 2)
     private String state;
 
+    // Construtor
     public User(String login, String name, String password, UserRole role) {
         this.login = login;
         this.name = name;
         this.password = password;
         this.role = role;
+        this.enabled = true;
     }
 
     @Override
@@ -105,5 +110,5 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return this.enabled; }
 }

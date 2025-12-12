@@ -33,7 +33,7 @@ public class DatabaseSeeder {
                 // Dados Pessoais
                 user.setName("Juliana Evelyn Clarice Pires");
                 user.setCpf("046.659.785-44");
-                user.setStatus("Trabalhando");
+                user.setEnabled(true);
 
                 // Dados Profissionais
                 user.setCrea("5168415");

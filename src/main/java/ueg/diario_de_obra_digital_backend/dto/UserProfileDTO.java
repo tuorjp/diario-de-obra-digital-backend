@@ -19,7 +19,7 @@ public class UserProfileDTO {
     private String creaUf;
     private String cpf;
     private LocalDate creationDate;
-    private String status;
+    private boolean enabled;
 
     private String address;
     private String addressNumber;
@@ -39,7 +39,7 @@ public class UserProfileDTO {
         this.creaUf = user.getCreaUf();
         this.cpf = user.getCpf();
         this.creationDate = user.getCreationDate();
-        this.status = user.getStatus();
+        this.enabled = user.isEnabled();
         this.address = user.getAddress();
         this.addressNumber = user.getAddressNumber();
         this.zipCode = user.getZipCode();
