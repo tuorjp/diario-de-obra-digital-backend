@@ -35,7 +35,7 @@ public class SecurityConfigurations {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Rotas Públicas (Documentação e Login)
+                        // Rotas Públicas
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -44,31 +44,30 @@ public class SecurityConfigurations {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // Libera requisições OPTIONS (Pre-flight) para o navegador não bloquear o CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
+                        // Registro é EXCLUSIVO de ADMIN
+                        .requestMatchers(HttpMethod.POST, "/user/register").hasRole("ADMIN")
 
-                        // Rotas de Teste (Admin)
-                        .requestMatchers(HttpMethod.POST, "/test").hasRole("ADMIN")
+                        // Rotas de listagem geral também restritas a ADMIN
+                        .requestMatchers(HttpMethod.GET, "/user/all").hasRole("ADMIN")
 
-                        // Todas as outras rotas (incluindo /user/...) exigem autenticação
+                        // Delete restrito a ADMIN
+                        .requestMatchers(HttpMethod.DELETE, "/user/delete/**").hasRole("ADMIN")
+
+                        // Demais rotas autenticadas
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    // Configuração Global de CORS para o Spring Security
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permite a origem do seu Frontend Angular
         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
-        // Permite os métodos necessários (GET para carregar, PUT para editar, OPTIONS para pre-flight)
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
-        // Permite todos os headers (incluindo Authorization)
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

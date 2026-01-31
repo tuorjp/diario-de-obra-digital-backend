@@ -10,7 +10,7 @@ public class EditUserDTO {
     private Long id;
     private String login;
     private String name;
-    private String password; // Opcional: tratar null no service se não for alterar
+    private String password;
     private UserRole role;
 
     private String phone1;
@@ -18,8 +18,8 @@ public class EditUserDTO {
     private String crea;
     private String creaUf;
     private String cpf;
-    private LocalDate admissionDate;
-    private boolean enabled;
+
+    private Boolean enabled;
 
     private String address;
     private String addressNumber;
