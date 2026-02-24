@@ -2,39 +2,59 @@
 
 Este é o back-end para o sistema de Diário de Obra Digital, construído com Spring Boot, Spring Security (JWT), JPA/Hibernate e Flyway para gerenciamento de banco de dados.
 
-## Configuração Inicial
+---
 
-Siga os passos abaixo para configurar seu ambiente de desenvolvimento.
+## 🐳 Rodando com Docker (recomendado)
+
+A forma mais simples de subir o ambiente completo (banco + aplicação) com um único comando.
+
+### Pré-requisitos
+- **Docker Desktop** instalado e em execução
+
+### Passos
+
+1. Clone o repositório e entre na pasta do projeto.
+
+2. Copie o arquivo de variáveis de ambiente e edite-o se necessário:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Suba os containers:
+   ```bash
+   docker compose up --build
+   ```
+   A aplicação estará disponível em `http://localhost:8090`.
+
+4. Para encerrar:
+   ```bash
+   docker compose down
+   ```
+   > Os dados do banco ficam persistidos no volume `postgres_data`. Para apagar tudo, use `docker compose down -v`.
+
+---
+
+## ⚙️ Rodando localmente (sem Docker)
 
 ### Pré-requisitos
 
--   **Java 23**
+-   **Java 21**
 -   **Maven 3**
--   **PostgreSQL 17**
--   Uma IDE de sua preferência (as instruções abaixo são para o **IntelliJ IDEA**)
+-   **PostgreSQL 17** instalado localmente
 
 ### Banco de Dados
 
 1.  Abra seu cliente PostgreSQL (pgAdmin, DBeaver, etc.).
-2.  Crie um novo banco de dados. Um nome recomendado é `diario-de-obra-ueg`.
+2.  Crie um novo banco de dados chamado `diario-de-obra-ueg`.
 3.  Você **não precisa** criar nenhuma tabela. As migrations do Flyway cuidarão disso automaticamente.
 
 ### Configuração da Aplicação
 
 1.  Navegue até `src/main/resources/`.
-3.  Abra o arquivo `application.properties` e preencha com as suas credenciais do PostgreSQL:
-
-```properties
-# Configuração do Banco de Dados PostgreSQL
-spring.datasource.url=jdbc:postgresql://localhost:5432/diario-de-obra-ueg
-spring.datasource.username=seu_usuario_postgres
-spring.datasource.password=sua_senha_postgres
-
-# Configuração do JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=validate
-
-# Chave secreta para geração de tokens JWT
-api.security.token.secret=sua_chave_secreta_aqui
-```
-
-O restante das configurações em ``application.properties`` pode permanecer como no arquivo deste repositório.
+2.  Abra o arquivo `application.properties`. As credenciais padrão são:
+    ```properties
+    spring.datasource.url=jdbc:postgresql://localhost:5432/diario-de-obra-ueg
+    spring.datasource.username=postgres
+    spring.datasource.password=12345
+    ```
+    Ajuste se suas credenciais locais forem diferentes (via variáveis de ambiente ou editando o arquivo).
