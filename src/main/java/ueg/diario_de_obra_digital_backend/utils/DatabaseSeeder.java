@@ -145,29 +145,38 @@ public class DatabaseSeeder {
                 System.out.println("Iniciando Seeding das Obras...");
 
                 // Busca fiscais e engenheiros já persistidos
-                List<User> fiscais      = userRepository.findAllByRole(UserRole.FISCAL);
-                List<User> engenheiros  = userRepository.findAllByRole(UserRole.ENGENHEIRO);
+                List<User> fiscais = userRepository.findAllByRole(UserRole.FISCAL);
+                List<User> engenheiros = userRepository.findAllByRole(UserRole.ENGENHEIRO);
 
                 // Dados fictícios realistas de obras de construção civil
                 String[][] obrasData = {
                         // { contratante, contratada, projeto }
-                        { "Prefeitura Municipal de Anápolis",    "Construtora Horizonte Ltda.",      "Construção da UBS Bairro Jundiaí"                  },
-                        { "Governo do Estado de Goiás",          "Engenharia Alfa S.A.",              "Pavimentação da GO-080 – Trecho Serra Dourada"      },
-                        { "Secretaria de Educação – GO",         "Empreiteira Construtura Verde",     "Ampliação da Escola Estadual Prof. Rui Barbosa"     },
-                        { "SANEAGO",                             "HidroTec Engenharia Ltda.",         "Implantação de Rede de Esgoto – Bairro Paraíso"     },
-                        { "Ministério da Infraestrutura",        "Viapar Construtora S.A.",           "Duplicação da BR-153 – Trecho Anápolis/Goiânia"     },
-                        { "Condomínio Residencial Villa Verde",  "Construtora Morada Bela Ltda.",     "Construção do Bloco C – Torres Residenciais"        },
-                        { "Universidade Estadual de Goiás",      "Arquiteto & Engenharia Associados", "Construção do Novo Bloco Administrativo – UEG"      },
-                        { "Prefeitura de Goiânia",               "Mega Obras Engenharia S.A.",        "Revitalização do Parque Areião – Fase II"           },
-                        { "Celg Distribuição S.A.",              "Elétrica Goiana Serviços Ltda.",    "Subestação de Energia – Distrito Industrial Norte"  },
-                        { "Grupo Hospitalar Primavera",          "Saúde & Obra Construções Ltda.",    "Expansão do Centro Cirúrgico – HGP Anápolis"       }
+                        { "Prefeitura Municipal de Anápolis", "Construtora Horizonte Ltda.",
+                                "Construção da UBS Bairro Jundiaí" },
+                        { "Governo do Estado de Goiás", "Engenharia Alfa S.A.",
+                                "Pavimentação da GO-080 – Trecho Serra Dourada" },
+                        { "Secretaria de Educação – GO", "Empreiteira Construtura Verde",
+                                "Ampliação da Escola Estadual Prof. Rui Barbosa" },
+                        { "SANEAGO", "HidroTec Engenharia Ltda.", "Implantação de Rede de Esgoto – Bairro Paraíso" },
+                        { "Ministério da Infraestrutura", "Viapar Construtora S.A.",
+                                "Duplicação da BR-153 – Trecho Anápolis/Goiânia" },
+                        { "Condomínio Residencial Villa Verde", "Construtora Morada Bela Ltda.",
+                                "Construção do Bloco C – Torres Residenciais" },
+                        { "Universidade Estadual de Goiás", "Arquiteto & Engenharia Associados",
+                                "Construção do Novo Bloco Administrativo – UEG" },
+                        { "Prefeitura de Goiânia", "Mega Obras Engenharia S.A.",
+                                "Revitalização do Parque Areião – Fase II" },
+                        { "Celg Distribuição S.A.", "Elétrica Goiana Serviços Ltda.",
+                                "Subestação de Energia – Distrito Industrial Norte" },
+                        { "Grupo Hospitalar Primavera", "Saúde & Obra Construções Ltda.",
+                                "Expansão do Centro Cirúrgico – HGP Anápolis" }
                 };
 
                 // Alterna status: 7 ativas, 3 inativas
                 ObraStatus[] statuses = {
-                        ObraStatus.ATIVA,   ObraStatus.ATIVA,   ObraStatus.ATIVA,
-                        ObraStatus.ATIVA,   ObraStatus.ATIVA,   ObraStatus.INATIVA,
-                        ObraStatus.ATIVA,   ObraStatus.ATIVA,   ObraStatus.INATIVA,
+                        ObraStatus.ATIVA, ObraStatus.ATIVA, ObraStatus.ATIVA,
+                        ObraStatus.ATIVA, ObraStatus.ATIVA, ObraStatus.INATIVA,
+                        ObraStatus.ATIVA, ObraStatus.ATIVA, ObraStatus.INATIVA,
                         ObraStatus.INATIVA
                 };
 
@@ -177,6 +186,7 @@ public class DatabaseSeeder {
                     obra.setContratada(obrasData[i][1]);
                     obra.setProjeto(obrasData[i][2]);
                     obra.setStatus(statuses[i]);
+                    obra.setDataInicio(LocalDate.now().minusDays(new Random().nextInt(365)));
 
                     // Atribui fiscal de forma rotativa (se houver fiscais)
                     if (!fiscais.isEmpty()) {

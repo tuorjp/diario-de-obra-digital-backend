@@ -6,6 +6,7 @@ import lombok.Setter;
 import ueg.diario_de_obra_digital_backend.enums.ObraStatus;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,16 +34,15 @@ public class Obra implements Serializable {
   @Column(nullable = false)
   private ObraStatus status;
 
+  @Column(name = "data_inicio")
+  private LocalDate dataInicio;
+
   @ManyToOne
   @JoinColumn(name = "fiscal_id")
   private User fiscal;
 
   @ManyToMany
-  @JoinTable(
-      name = "obras_engenheiros",
-      joinColumns = @JoinColumn(name = "obra_id"),
-      inverseJoinColumns = @JoinColumn(name = "engenheiro_id")
-  )
+  @JoinTable(name = "obras_engenheiros", joinColumns = @JoinColumn(name = "obra_id"), inverseJoinColumns = @JoinColumn(name = "engenheiro_id"))
   private Set<User> engenheiros = new HashSet<>();
 
   @OneToMany(mappedBy = "obra", cascade = CascadeType.ALL, orphanRemoval = true)
