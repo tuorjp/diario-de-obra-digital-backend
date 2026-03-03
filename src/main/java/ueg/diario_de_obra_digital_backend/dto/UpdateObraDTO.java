@@ -13,4 +13,5 @@ public class UpdateObraDTO {
     private LocalDate dataInicio;
     private Long fiscalId;
     private Set<Long> engenheiroIds;
+    private EnderecoObraDTO endereco;
 }

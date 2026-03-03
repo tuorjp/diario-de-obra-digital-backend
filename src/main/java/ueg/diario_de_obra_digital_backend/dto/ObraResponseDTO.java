@@ -18,6 +18,7 @@ public class ObraResponseDTO {
     private LocalDate dataInicio;
     private UserProfileDTO fiscal;
     private Set<UserProfileDTO> engenheiros;
+    private EnderecoObraDTO endereco;
 
     public ObraResponseDTO(Obra obra) {
         this.id = obra.getId();
@@ -31,5 +32,6 @@ public class ObraResponseDTO {
                 .stream()
                 .map(UserProfileDTO::new)
                 .collect(Collectors.toSet());
+        this.endereco = obra.getEndereco() != null ? new EnderecoObraDTO(obra.getEndereco()) : null;
     }
 }

@@ -13,6 +13,7 @@ import ueg.diario_de_obra_digital_backend.dto.ObraResponseDTO;
 import ueg.diario_de_obra_digital_backend.dto.UpdateObraDTO;
 import ueg.diario_de_obra_digital_backend.enums.ObraStatus;
 import ueg.diario_de_obra_digital_backend.model.Obra;
+import ueg.diario_de_obra_digital_backend.model.EnderecoObra;
 import ueg.diario_de_obra_digital_backend.model.User;
 import ueg.diario_de_obra_digital_backend.repository.ObraRepository;
 import ueg.diario_de_obra_digital_backend.repository.UserRepository;
@@ -44,6 +45,18 @@ public class ObraService {
         obra.setProjeto(dto.getProjeto());
         obra.setStatus(ObraStatus.ATIVA);
 
+        if (dto.getEndereco() != null) {
+            EnderecoObra endereco = new EnderecoObra();
+            endereco.setEndereco(dto.getEndereco().getEndereco());
+            endereco.setComplemento(dto.getEndereco().getComplemento());
+            endereco.setNumero(dto.getEndereco().getNumero());
+            endereco.setCidade(dto.getEndereco().getCidade());
+            endereco.setCep(dto.getEndereco().getCep());
+            endereco.setUf(dto.getEndereco().getUf());
+            endereco.setObra(obra);
+            obra.setEndereco(endereco);
+        }
+
         applyFiscalAndEngenheiros(obra, dto.getFiscalId(), dto.getEngenheiroIds());
 
         return new ObraResponseDTO(obraRepository.save(obra));
@@ -55,9 +68,33 @@ public class ObraService {
     public ObraResponseDTO update(Long id, UpdateObraDTO dto) {
         Obra obra = findObraOrThrow(id);
 
-        if (StringUtils.hasText(dto.getContratante())) obra.setContratante(dto.getContratante());
-        if (StringUtils.hasText(dto.getContratada()))  obra.setContratada(dto.getContratada());
-        if (StringUtils.hasText(dto.getProjeto()))     obra.setProjeto(dto.getProjeto());
+        if (StringUtils.hasText(dto.getContratante()))
+            obra.setContratante(dto.getContratante());
+        if (StringUtils.hasText(dto.getContratada()))
+            obra.setContratada(dto.getContratada());
+        if (StringUtils.hasText(dto.getProjeto()))
+            obra.setProjeto(dto.getProjeto());
+
+        if (dto.getEndereco() != null) {
+            EnderecoObra endereco = obra.getEndereco();
+            if (endereco == null) {
+                endereco = new EnderecoObra();
+                endereco.setObra(obra);
+            }
+            if (StringUtils.hasText(dto.getEndereco().getEndereco()))
+                endereco.setEndereco(dto.getEndereco().getEndereco());
+            if (dto.getEndereco().getComplemento() != null)
+                endereco.setComplemento(dto.getEndereco().getComplemento());
+            if (dto.getEndereco().getNumero() != null)
+                endereco.setNumero(dto.getEndereco().getNumero());
+            if (StringUtils.hasText(dto.getEndereco().getCidade()))
+                endereco.setCidade(dto.getEndereco().getCidade());
+            if (StringUtils.hasText(dto.getEndereco().getCep()))
+                endereco.setCep(dto.getEndereco().getCep());
+            if (StringUtils.hasText(dto.getEndereco().getUf()))
+                endereco.setUf(dto.getEndereco().getUf());
+            obra.setEndereco(endereco);
+        }
 
         applyFiscalAndEngenheiros(obra, dto.getFiscalId(), dto.getEngenheiroIds());
 
@@ -91,9 +128,8 @@ public class ObraService {
                 String like = "%" + term.toLowerCase() + "%";
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("contratante")), like),
-                        cb.like(cb.lower(root.get("contratada")),  like),
-                        cb.like(cb.lower(root.get("projeto")),     like)
-                ));
+                        cb.like(cb.lower(root.get("contratada")), like),
+                        cb.like(cb.lower(root.get("projeto")), like)));
             }
 
             return predicates.isEmpty() ? cb.conjunction()
@@ -127,7 +163,8 @@ public class ObraService {
         if (engenheiroIds != null && !engenheiroIds.isEmpty()) {
             for (Long engenheiroId : engenheiroIds) {
                 User engenheiro = userRepository.findById(engenheiroId)
-                        .orElseThrow(() -> new UserNotFoundException("Engenheiro não encontrado com id: " + engenheiroId));
+                        .orElseThrow(
+                                () -> new UserNotFoundException("Engenheiro não encontrado com id: " + engenheiroId));
                 engenheiros.add(engenheiro);
             }
         }
@@ -149,9 +186,12 @@ public class ObraService {
 
     private void validateRequiredFields(String contratante, String contratada, String projeto) {
         List<String> missing = new ArrayList<>();
-        if (!StringUtils.hasText(contratante)) missing.add("contratante");
-        if (!StringUtils.hasText(contratada))  missing.add("contratada");
-        if (!StringUtils.hasText(projeto))     missing.add("projeto");
+        if (!StringUtils.hasText(contratante))
+            missing.add("contratante");
+        if (!StringUtils.hasText(contratada))
+            missing.add("contratada");
+        if (!StringUtils.hasText(projeto))
+            missing.add("projeto");
 
         if (!missing.isEmpty()) {
             throw new IllegalArgumentException(

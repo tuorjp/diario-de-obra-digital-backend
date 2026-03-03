@@ -47,4 +47,7 @@ public class Obra implements Serializable {
 
   @OneToMany(mappedBy = "obra", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiarioDeObra> diarios;
+
+  @OneToOne(mappedBy = "obra", cascade = CascadeType.ALL, orphanRemoval = true)
+  private EnderecoObra endereco;
 }
