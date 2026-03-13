@@ -44,6 +44,7 @@ public class ObraService {
         obra.setContratada(dto.getContratada());
         obra.setProjeto(dto.getProjeto());
         obra.setStatus(ObraStatus.ATIVA);
+        obra.setObservacao(dto.getObservacao());
 
         if (dto.getEndereco() != null) {
             EnderecoObra endereco = new EnderecoObra();
@@ -74,6 +75,10 @@ public class ObraService {
             obra.setContratada(dto.getContratada());
         if (StringUtils.hasText(dto.getProjeto()))
             obra.setProjeto(dto.getProjeto());
+
+        if (dto.getObservacao() != null) {
+            obra.setObservacao(dto.getObservacao());
+        }
 
         if (dto.getEndereco() != null) {
             EnderecoObra endereco = obra.getEndereco();

@@ -11,6 +11,7 @@ public class UpdateObraDTO {
     private String contratada;
     private String projeto;
     private LocalDate dataInicio;
+    private String observacao;
     private Long fiscalId;
     private Set<Long> engenheiroIds;
     private EnderecoObraDTO endereco;

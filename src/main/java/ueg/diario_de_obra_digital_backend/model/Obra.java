@@ -37,6 +37,9 @@ public class Obra implements Serializable {
   @Column(name = "data_inicio")
   private LocalDate dataInicio;
 
+  @Column(columnDefinition = "TEXT")
+  private String observacao;
+
   @ManyToOne
   @JoinColumn(name = "fiscal_id")
   private User fiscal;

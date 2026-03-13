@@ -189,6 +189,7 @@ public class DatabaseSeeder {
                                         obra.setProjeto(obrasData[i][2]);
                                         obra.setStatus(statuses[i]);
                                         obra.setDataInicio(LocalDate.now().minusDays(new Random().nextInt(365)));
+                                        obra.setObservacao("Observação inicial gerada automaticamente para o projeto " + obrasData[i][2] + " da contratada " + obrasData[i][1] + ".");
 
                                         EnderecoObra endereco = new EnderecoObra();
                                         endereco.setEndereco("Rua Fictícia da Obra " + i);

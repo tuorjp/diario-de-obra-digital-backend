@@ -16,6 +16,7 @@ public class ObraResponseDTO {
     private String projeto;
     private ObraStatus status;
     private LocalDate dataInicio;
+    private String observacao;
     private UserProfileDTO fiscal;
     private Set<UserProfileDTO> engenheiros;
     private EnderecoObraDTO endereco;
@@ -27,6 +28,7 @@ public class ObraResponseDTO {
         this.projeto = obra.getProjeto();
         this.status = obra.getStatus();
         this.dataInicio = obra.getDataInicio();
+        this.observacao = obra.getObservacao();
         this.fiscal = obra.getFiscal() != null ? new UserProfileDTO(obra.getFiscal()) : null;
         this.engenheiros = obra.getEngenheiros()
                 .stream()
