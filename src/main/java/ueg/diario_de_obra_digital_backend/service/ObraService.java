@@ -43,7 +43,10 @@ public class ObraService {
         obra.setContratante(dto.getContratante());
         obra.setContratada(dto.getContratada());
         obra.setProjeto(dto.getProjeto());
+        obra.setNumeroContrato(dto.getNumeroContrato());
         obra.setStatus(ObraStatus.ATIVA);
+        obra.setDataInicio(dto.getDataInicio());
+        obra.setDataPrevistaFim(dto.getDataPrevistaFim());
         obra.setObservacao(dto.getObservacao());
 
         if (dto.getEndereco() != null) {
@@ -75,6 +78,12 @@ public class ObraService {
             obra.setContratada(dto.getContratada());
         if (StringUtils.hasText(dto.getProjeto()))
             obra.setProjeto(dto.getProjeto());
+        if (dto.getNumeroContrato() != null)
+            obra.setNumeroContrato(dto.getNumeroContrato());
+        if (dto.getDataInicio() != null)
+            obra.setDataInicio(dto.getDataInicio());
+        if (dto.getDataPrevistaFim() != null)
+            obra.setDataPrevistaFim(dto.getDataPrevistaFim());
 
         if (dto.getObservacao() != null) {
             obra.setObservacao(dto.getObservacao());

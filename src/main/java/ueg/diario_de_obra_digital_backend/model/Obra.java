@@ -34,8 +34,14 @@ public class Obra implements Serializable {
   @Column(nullable = false)
   private ObraStatus status;
 
+  @Column(name = "numero_contrato")
+  private String numeroContrato;
+
   @Column(name = "data_inicio")
   private LocalDate dataInicio;
+
+  @Column(name = "data_prevista_fim")
+  private LocalDate dataPrevistaFim;
 
   @Column(columnDefinition = "TEXT")
   private String observacao;

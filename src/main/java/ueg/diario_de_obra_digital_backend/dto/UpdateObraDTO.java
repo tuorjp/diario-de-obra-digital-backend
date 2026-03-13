@@ -10,7 +10,9 @@ public class UpdateObraDTO {
     private String contratante;
     private String contratada;
     private String projeto;
+    private String numeroContrato;
     private LocalDate dataInicio;
+    private LocalDate dataPrevistaFim;
     private String observacao;
     private Long fiscalId;
     private Set<Long> engenheiroIds;
