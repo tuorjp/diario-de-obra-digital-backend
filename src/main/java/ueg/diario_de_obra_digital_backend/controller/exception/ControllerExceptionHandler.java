@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.HttpStatus;
 import ueg.diario_de_obra_digital_backend.service.exception.*;
 import org.springframework.security.core.AuthenticationException;
 
@@ -33,6 +34,21 @@ public class ControllerExceptionHandler {
   @ExceptionHandler(DuplicatedTupleException.class)
   public ResponseEntity<String> handleDuplicatedTupleException(DuplicatedTupleException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+  }
+
+  @ExceptionHandler(ObraNotFoundException.class)
+  public ResponseEntity<String> handleObraNotFoundException(ObraNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+  }
+
+  @ExceptionHandler(DuplicateRoleAssignmentException.class)
+  public ResponseEntity<String> handleDuplicateRoleAssignmentException(DuplicateRoleAssignmentException e) {
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
   }
 
   @ExceptionHandler(AuthenticationException.class)

@@ -46,6 +46,7 @@ public class SecurityConfigurations {
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers("/error").permitAll()
 
                         // Registro é EXCLUSIVO de ADMIN
                         .requestMatchers(HttpMethod.POST, "/user/register").hasRole("ADMIN")
@@ -55,6 +56,13 @@ public class SecurityConfigurations {
 
                         // Delete restrito a ADMIN
                         .requestMatchers(HttpMethod.DELETE, "/user/delete/**").hasRole("ADMIN")
+
+                        // Criação e Edição de Obra: ADMIN e GESTOR
+                        .requestMatchers(HttpMethod.POST, "/obra").hasAnyRole("ADMIN", "GESTOR")
+                        .requestMatchers(HttpMethod.PUT, "/obra/**").hasAnyRole("ADMIN", "GESTOR")
+
+                        // Exclusão lógica de Obra: somente ADMIN
+                        .requestMatchers(HttpMethod.DELETE, "/obra/**").hasRole("ADMIN")
 
                         // Demais rotas autenticadas
                         .anyRequest().authenticated()
