@@ -21,6 +21,7 @@ public class ObraResponseDTO {
     private String observacao;
     private UserProfileDTO fiscal;
     private Set<UserProfileDTO> engenheiros;
+    private UserProfileDTO criador;
     private EnderecoObraDTO endereco;
 
     public ObraResponseDTO(Obra obra) {
@@ -38,6 +39,7 @@ public class ObraResponseDTO {
                 .stream()
                 .map(UserProfileDTO::new)
                 .collect(Collectors.toSet());
+        this.criador = obra.getCriador() != null ? new UserProfileDTO(obra.getCriador()) : null;
         this.endereco = obra.getEndereco() != null ? new EnderecoObraDTO(obra.getEndereco()) : null;
     }
 }

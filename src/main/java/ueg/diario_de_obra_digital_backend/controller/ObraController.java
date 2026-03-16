@@ -29,7 +29,7 @@ public class ObraController {
             @RequestBody CreateObraDTO dto,
             @AuthenticationPrincipal User currentUser
     ) {
-        ObraResponseDTO response = obraService.create(dto);
+        ObraResponseDTO response = obraService.create(dto, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -40,7 +40,7 @@ public class ObraController {
             @RequestBody UpdateObraDTO dto,
             @AuthenticationPrincipal User currentUser
     ) {
-        ObraResponseDTO response = obraService.update(id, dto);
+        ObraResponseDTO response = obraService.update(id, dto, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -62,18 +62,22 @@ public class ObraController {
             @RequestParam(defaultValue = "projeto") String sortField,
             @RequestParam(defaultValue = "asc")   String sortDir,
             @RequestParam(required = false)       String term,
-            @RequestParam(required = false)       ObraStatus status
+            @RequestParam(required = false)       ObraStatus status,
+            @AuthenticationPrincipal User currentUser
     ) {
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortField).descending()
                 : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(obraService.search(term, status, pageable));
+        return ResponseEntity.ok(obraService.search(term, status, pageable, currentUser));
     }
 
     /** GET /obra/{id} — Buscar obra por ID */
     @GetMapping("/{id}")
-    public ResponseEntity<ObraResponseDTO> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(obraService.findById(id));
+    public ResponseEntity<ObraResponseDTO> findById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(obraService.findById(id, currentUser));
     }
 }

@@ -36,7 +36,7 @@ public class ObraService {
     // ─── CREATE ───────────────────────────────────────────────────────────────
 
     @Transactional
-    public ObraResponseDTO create(CreateObraDTO dto) {
+    public ObraResponseDTO create(CreateObraDTO dto, User currentUser) {
         validateRequiredFields(dto.getContratante(), dto.getContratada(), dto.getProjeto());
 
         Obra obra = new Obra();
@@ -48,6 +48,7 @@ public class ObraService {
         obra.setDataInicio(dto.getDataInicio());
         obra.setDataPrevistaFim(dto.getDataPrevistaFim());
         obra.setObservacao(dto.getObservacao());
+        obra.setCriador(currentUser);
 
         if (dto.getEndereco() != null) {
             EnderecoObra endereco = new EnderecoObra();
@@ -69,8 +70,12 @@ public class ObraService {
     // ─── UPDATE ───────────────────────────────────────────────────────────────
 
     @Transactional
-    public ObraResponseDTO update(Long id, UpdateObraDTO dto) {
+    public ObraResponseDTO update(Long id, UpdateObraDTO dto, User currentUser) {
         Obra obra = findObraOrThrow(id);
+
+        if (obra.getCriador() != null && !obra.getCriador().getId().equals(currentUser.getId()) && currentUser.getRole() != ueg.diario_de_obra_digital_backend.enums.UserRole.ADMIN) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Somente o criador pode alterar esta obra");
+        }
 
         if (StringUtils.hasText(dto.getContratante()))
             obra.setContratante(dto.getContratante());
@@ -126,13 +131,38 @@ public class ObraService {
 
     // ─── READS ────────────────────────────────────────────────────────────────
 
-    public ObraResponseDTO findById(Long id) {
-        return new ObraResponseDTO(findObraOrThrow(id));
+    public ObraResponseDTO findById(Long id, User currentUser) {
+        Obra obra = findObraOrThrow(id);
+
+        if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.GESTOR) {
+            if (obra.getCriador() != null && !currentUser.getId().equals(obra.getCriador().getId())) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
+            }
+        } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.FISCAL || 
+                   currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.ENGENHEIRO) {
+            boolean isFiscal = obra.getFiscal() != null && obra.getFiscal().getId().equals(currentUser.getId());
+            boolean isEngenheiro = obra.getEngenheiros() != null && obra.getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
+            if (!isFiscal && !isEngenheiro) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
+            }
+        }
+
+        return new ObraResponseDTO(obra);
     }
 
-    public Page<ObraResponseDTO> search(String term, ObraStatus status, Pageable pageable) {
+    public Page<ObraResponseDTO> search(String term, ObraStatus status, Pageable pageable, User currentUser) {
         Specification<Obra> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.GESTOR) {
+                predicates.add(cb.equal(root.get("criador"), currentUser));
+            } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.FISCAL || 
+                       currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.ENGENHEIRO) {
+                predicates.add(cb.or(
+                        cb.equal(root.get("fiscal"), currentUser),
+                        cb.isMember(currentUser, root.get("engenheiros"))
+                ));
+            }
 
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));

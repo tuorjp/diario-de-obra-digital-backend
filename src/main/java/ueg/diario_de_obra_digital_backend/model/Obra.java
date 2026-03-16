@@ -57,6 +57,10 @@ public class Obra implements Serializable {
   @OneToMany(mappedBy = "obra", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiarioDeObra> diarios;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "criador_id")
+  private User criador;
+
   @OneToOne(mappedBy = "obra", cascade = CascadeType.ALL, orphanRemoval = true)
   private EnderecoObra endereco;
 }

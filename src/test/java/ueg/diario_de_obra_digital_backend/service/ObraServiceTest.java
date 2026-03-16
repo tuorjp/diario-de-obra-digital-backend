@@ -42,6 +42,8 @@ class ObraServiceTest {
     private User fiscal;
     private User engenheiro;
     private User engenheiroExtra;
+    private User gestor;
+    private User admin;
 
     @BeforeEach
     void setUp() {
@@ -51,10 +53,14 @@ class ObraServiceTest {
         fiscal = new User("fiscal@test.com", "Fiscal Teste", "senha", UserRole.FISCAL);
         engenheiro = new User("engenheiro@test.com", "Engenheiro Teste", "senha", UserRole.ENGENHEIRO);
         engenheiroExtra = new User("engenheiro2@test.com", "Engenheiro Extra", "senha", UserRole.ENGENHEIRO);
+        gestor = new User("gestor@test.com", "Gestor Teste", "senha", UserRole.GESTOR);
+        admin = new User("admin@test.com", "Admin Teste", "senha", UserRole.ADMIN);
 
         userRepository.save(fiscal);
         userRepository.save(engenheiro);
         userRepository.save(engenheiroExtra);
+        userRepository.save(gestor);
+        userRepository.save(admin);
     }
 
     // ─── CREATE ───────────────────────────────────────────────────────────────
@@ -67,7 +73,7 @@ class ObraServiceTest {
         dto.setContratada("Construtora ABC");
         dto.setProjeto("Escola Nova");
 
-        ObraResponseDTO response = obraService.create(dto);
+        ObraResponseDTO response = obraService.create(dto, admin);
 
         assertNotNull(response.getId());
         assertEquals("Prefeitura Municipal", response.getContratante());
@@ -84,7 +90,7 @@ class ObraServiceTest {
         dto.setFiscalId(fiscal.getId());
         dto.setEngenheiroIds(Set.of(engenheiro.getId()));
 
-        ObraResponseDTO response = obraService.create(dto);
+        ObraResponseDTO response = obraService.create(dto, admin);
 
         assertNotNull(response.getFiscal());
         assertEquals(fiscal.getId(), response.getFiscal().getId());
@@ -98,7 +104,7 @@ class ObraServiceTest {
         dto.setContratante("Prefeitura");
         // contratada e projeto ausentes
 
-        assertThrows(IllegalArgumentException.class, () -> obraService.create(dto));
+        assertThrows(IllegalArgumentException.class, () -> obraService.create(dto, admin));
     }
 
     @Test
@@ -111,7 +117,7 @@ class ObraServiceTest {
         dto.setFiscalId(fiscal.getId());
         dto.setEngenheiroIds(Set.of(fiscal.getId())); // mesmo usuário!
 
-        assertThrows(DuplicateRoleAssignmentException.class, () -> obraService.create(dto));
+        assertThrows(DuplicateRoleAssignmentException.class, () -> obraService.create(dto, admin));
     }
 
     // ─── UPDATE ───────────────────────────────────────────────────────────────
@@ -125,6 +131,7 @@ class ObraServiceTest {
         obra.setContratada("Construtora");
         obra.setProjeto("Projeto A");
         obra.setStatus(ObraStatus.ATIVA);
+        obra.setCriador(gestor);
         obraRepository.save(obra);
 
         UpdateObraDTO dto = new UpdateObraDTO();
@@ -132,7 +139,7 @@ class ObraServiceTest {
         dto.setFiscalId(fiscal.getId());
         dto.setEngenheiroIds(Set.of(engenheiro.getId()));
 
-        ObraResponseDTO response = obraService.update(obra.getId(), dto);
+        ObraResponseDTO response = obraService.update(obra.getId(), dto, gestor);
 
         assertEquals("Novo Contratante", response.getContratante());
         assertNotNull(response.getFiscal());
@@ -147,13 +154,31 @@ class ObraServiceTest {
         obra.setContratada("Y");
         obra.setProjeto("Z");
         obra.setStatus(ObraStatus.ATIVA);
+        obra.setCriador(gestor);
         obraRepository.save(obra);
 
         UpdateObraDTO dto = new UpdateObraDTO();
         dto.setFiscalId(fiscal.getId());
         dto.setEngenheiroIds(Set.of(fiscal.getId())); // conflito
 
-        assertThrows(DuplicateRoleAssignmentException.class, () -> obraService.update(obra.getId(), dto));
+        assertThrows(DuplicateRoleAssignmentException.class, () -> obraService.update(obra.getId(), dto, gestor));
+    }
+
+    @Test
+    @DisplayName("ACL — Deve bloquear edição de obra para gestor que não é o criador")
+    void update_seNaoForCriadorEForGestor_deveLancarForbidden() {
+        Obra obra = new Obra();
+        obra.setContratante("X");
+        obra.setContratada("Y");
+        obra.setProjeto("Z");
+        obra.setStatus(ObraStatus.ATIVA);
+        obra.setCriador(admin); // outra pessoa
+        obraRepository.save(obra);
+
+        UpdateObraDTO dto = new UpdateObraDTO();
+        dto.setContratante("Novo Contratante");
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> obraService.update(obra.getId(), dto, gestor));
     }
 
     // ─── DEACTIVATE ───────────────────────────────────────────────────────────
@@ -179,7 +204,7 @@ class ObraServiceTest {
     @Test
     @DisplayName("Deve lançar ObraNotFoundException para ID inexistente")
     void findById_idInexistente_deveLancarExcecao() {
-        assertThrows(ObraNotFoundException.class, () -> obraService.findById(999L));
+        assertThrows(ObraNotFoundException.class, () -> obraService.findById(999L, admin));
     }
 
     @Test
@@ -191,20 +216,73 @@ class ObraServiceTest {
         o1.setContratada("Construtora");
         o1.setProjeto("Escola");
         o1.setStatus(ObraStatus.ATIVA);
+        o1.setCriador(gestor);
 
         Obra o2 = new Obra();
         o2.setContratante("Estado");
         o2.setContratada("Empreiteira");
         o2.setProjeto("Hospital");
         o2.setStatus(ObraStatus.INATIVA);
+        o2.setCriador(admin);
 
         obraRepository.save(o1);
         obraRepository.save(o2);
 
-        Page<ObraResponseDTO> result = obraService.search("Escola", null, PageRequest.of(0, 10));
+        Page<ObraResponseDTO> result = obraService.search("Escola", null, PageRequest.of(0, 10), admin);
         assertEquals(1, result.getTotalElements());
 
-        Page<ObraResponseDTO> inativas = obraService.search(null, ObraStatus.INATIVA, PageRequest.of(0, 10));
+        Page<ObraResponseDTO> inativas = obraService.search(null, ObraStatus.INATIVA, PageRequest.of(0, 10), admin);
         assertEquals(1, inativas.getTotalElements());
+    }
+
+    @Test
+    @DisplayName("ACL — Gestor lista apenas as próprias obras")
+    void search_comGestor_deveFiltrarObrasPorGestor() {
+        Obra o1 = new Obra();
+        o1.setContratante("P1");
+        o1.setContratada("C1");
+        o1.setProjeto("Prj1");
+        o1.setStatus(ObraStatus.ATIVA);
+        o1.setCriador(gestor);
+
+        Obra o2 = new Obra();
+        o2.setContratante("P2");
+        o2.setContratada("C2");
+        o2.setProjeto("Prj2");
+        o2.setStatus(ObraStatus.ATIVA);
+        o2.setCriador(admin);
+
+        obraRepository.save(o1);
+        obraRepository.save(o2);
+
+        Page<ObraResponseDTO> result = obraService.search(null, null, PageRequest.of(0, 10), gestor);
+        assertEquals(1, result.getTotalElements());
+        assertEquals("P1", result.getContent().get(0).getContratante());
+    }
+
+    @Test
+    @DisplayName("ACL — Fiscal lista apenas as obras nas quais está envolvido")
+    void search_comFiscal_deveFiltrarObrasPorFiscalOuEngenheiro() {
+        Obra o1 = new Obra();
+        o1.setContratante("P1");
+        o1.setContratada("C1");
+        o1.setProjeto("Prj1");
+        o1.setStatus(ObraStatus.ATIVA);
+        o1.setFiscal(fiscal);
+        o1.setCriador(gestor);
+
+        Obra o2 = new Obra();
+        o2.setContratante("P2");
+        o2.setContratada("C2");
+        o2.setProjeto("Prj2");
+        o2.setStatus(ObraStatus.ATIVA);
+        o2.setCriador(gestor);
+
+        obraRepository.save(o1);
+        obraRepository.save(o2);
+
+        Page<ObraResponseDTO> result = obraService.search(null, null, PageRequest.of(0, 10), fiscal);
+        assertEquals(1, result.getTotalElements());
+        assertEquals("P1", result.getContent().get(0).getContratante());
     }
 }
