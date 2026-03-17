@@ -171,15 +171,19 @@ public class DatabaseSeeder {
                                                 { "Celg Distribuição S.A.", "Elétrica Goiana Serviços Ltda.",
                                                                 "Subestação de Energia – Distrito Industrial Norte" },
                                                 { "Grupo Hospitalar Primavera", "Saúde & Obra Construções Ltda.",
-                                                                "Expansão do Centro Cirúrgico – HGP Anápolis" }
+                                                                "Expansão do Centro Cirúrgico – HGP Anápolis" },
+                                                { "Tribunal de Justiça de Goiás", "Construtora Horizonte Ltda.",
+                                                                "Reforma do Fórum Cível" },
+                                                { "Ministério Público de Goiás", "Engenharia Alfa S.A.",
+                                                                "Construção da Nova Sede" }
                                 };
 
-                                // Alterna status: 7 ativas, 3 inativas
+                                // Alterna status: 7 ativas, 3 inativas, 2 concluídas
                                 ObraStatus[] statuses = {
                                                 ObraStatus.ATIVA, ObraStatus.ATIVA, ObraStatus.ATIVA,
                                                 ObraStatus.ATIVA, ObraStatus.ATIVA, ObraStatus.INATIVA,
                                                 ObraStatus.ATIVA, ObraStatus.ATIVA, ObraStatus.INATIVA,
-                                                ObraStatus.INATIVA
+                                                ObraStatus.INATIVA, ObraStatus.CONCLUIDA, ObraStatus.CONCLUIDA
                                 };
 
                                 for (int i = 0; i < obrasData.length; i++) {

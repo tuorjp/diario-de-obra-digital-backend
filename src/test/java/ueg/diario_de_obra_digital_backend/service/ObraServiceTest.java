@@ -120,6 +120,38 @@ class ObraServiceTest {
         assertThrows(DuplicateRoleAssignmentException.class, () -> obraService.create(dto, admin));
     }
 
+    @Test
+    @DisplayName("Deve lançar IllegalArgumentException ao atribuir fiscal inativo")
+    void create_comFiscalInativo_deveLancarExcecao() {
+        fiscal.setEnabled(false);
+        userRepository.save(fiscal);
+
+        CreateObraDTO dto = new CreateObraDTO();
+        dto.setContratante("Prefeitura");
+        dto.setContratada("Construtora");
+        dto.setProjeto("Prédio");
+        dto.setFiscalId(fiscal.getId());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> obraService.create(dto, admin));
+        assertEquals("Não é possível atribuir um usuário inativo como fiscal", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar IllegalArgumentException ao atribuir engenheiro inativo")
+    void create_comEngenheiroInativo_deveLancarExcecao() {
+        engenheiro.setEnabled(false);
+        userRepository.save(engenheiro);
+
+        CreateObraDTO dto = new CreateObraDTO();
+        dto.setContratante("Prefeitura");
+        dto.setContratada("Construtora");
+        dto.setProjeto("Prédio");
+        dto.setEngenheiroIds(Set.of(engenheiro.getId()));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> obraService.create(dto, admin));
+        assertEquals("Não é possível atribuir um usuário inativo como engenheiro", exception.getMessage());
+    }
+
     // ─── UPDATE ───────────────────────────────────────────────────────────────
 
     @Test
@@ -228,10 +260,10 @@ class ObraServiceTest {
         obraRepository.save(o1);
         obraRepository.save(o2);
 
-        Page<ObraResponseDTO> result = obraService.search("Escola", null, PageRequest.of(0, 10), admin);
+        Page<ObraResponseDTO> result = obraService.search("Escola", "projeto", null, PageRequest.of(0, 10), admin);
         assertEquals(1, result.getTotalElements());
 
-        Page<ObraResponseDTO> inativas = obraService.search(null, ObraStatus.INATIVA, PageRequest.of(0, 10), admin);
+        Page<ObraResponseDTO> inativas = obraService.search(null, null, ObraStatus.INATIVA, PageRequest.of(0, 10), admin);
         assertEquals(1, inativas.getTotalElements());
     }
 
@@ -255,7 +287,7 @@ class ObraServiceTest {
         obraRepository.save(o1);
         obraRepository.save(o2);
 
-        Page<ObraResponseDTO> result = obraService.search(null, null, PageRequest.of(0, 10), gestor);
+        Page<ObraResponseDTO> result = obraService.search(null, null, null, PageRequest.of(0, 10), gestor);
         assertEquals(1, result.getTotalElements());
         assertEquals("P1", result.getContent().get(0).getContratante());
     }
@@ -281,7 +313,7 @@ class ObraServiceTest {
         obraRepository.save(o1);
         obraRepository.save(o2);
 
-        Page<ObraResponseDTO> result = obraService.search(null, null, PageRequest.of(0, 10), fiscal);
+        Page<ObraResponseDTO> result = obraService.search(null, null, null, PageRequest.of(0, 10), fiscal);
         assertEquals(1, result.getTotalElements());
         assertEquals("P1", result.getContent().get(0).getContratante());
     }

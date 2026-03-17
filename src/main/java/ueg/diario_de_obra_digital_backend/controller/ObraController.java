@@ -61,6 +61,7 @@ public class ObraController {
             @RequestParam(defaultValue = "10")    int size,
             @RequestParam(defaultValue = "projeto") String sortField,
             @RequestParam(defaultValue = "asc")   String sortDir,
+            @RequestParam(defaultValue = "projeto") String searchField,
             @RequestParam(required = false)       String term,
             @RequestParam(required = false)       ObraStatus status,
             @AuthenticationPrincipal User currentUser
@@ -69,7 +70,7 @@ public class ObraController {
                 ? Sort.by(sortField).descending()
                 : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(obraService.search(term, status, pageable, currentUser));
+        return ResponseEntity.ok(obraService.search(term, searchField, status, pageable, currentUser));
     }
 
     /** GET /obra/{id} — Buscar obra por ID */

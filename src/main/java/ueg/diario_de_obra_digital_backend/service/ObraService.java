@@ -150,7 +150,7 @@ public class ObraService {
         return new ObraResponseDTO(obra);
     }
 
-    public Page<ObraResponseDTO> search(String term, ObraStatus status, Pageable pageable, User currentUser) {
+    public Page<ObraResponseDTO> search(String term, String searchField, ObraStatus status, Pageable pageable, User currentUser) {
         Specification<Obra> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -168,12 +168,27 @@ public class ObraService {
                 predicates.add(cb.equal(root.get("status"), status));
             }
 
-            if (StringUtils.hasText(term)) {
-                String like = "%" + term.toLowerCase() + "%";
-                predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("contratante")), like),
-                        cb.like(cb.lower(root.get("contratada")), like),
-                        cb.like(cb.lower(root.get("projeto")), like)));
+            if (StringUtils.hasText(term) && StringUtils.hasText(searchField)) {
+                if (searchField.equals("id")) {
+                    try {
+                        Long idTerm = Long.parseLong(term.trim());
+                        predicates.add(cb.equal(root.get("id"), idTerm));
+                    } catch (NumberFormatException e) {
+                        // If searching by ID but term isn't a number, force no results
+                        predicates.add(cb.disjunction());
+                    }
+                } else if (searchField.equals("status")) {
+                    try {
+                        ObraStatus statusTerm = ObraStatus.valueOf(term.trim().toUpperCase());
+                        predicates.add(cb.equal(root.get("status"), statusTerm));
+                    } catch (IllegalArgumentException e) {
+                        // If searching by status but term isn't a valid status, force no results
+                        predicates.add(cb.disjunction());
+                    }
+                } else {
+                    String like = "%" + term.toLowerCase() + "%";
+                    predicates.add(cb.like(cb.lower(root.get(searchField)), like));
+                }
             }
 
             return predicates.isEmpty() ? cb.conjunction()
@@ -200,6 +215,9 @@ public class ObraService {
         if (fiscalId != null) {
             fiscal = userRepository.findById(fiscalId)
                     .orElseThrow(() -> new UserNotFoundException("Fiscal não encontrado com id: " + fiscalId));
+            if (!fiscal.isEnabled()) {
+                throw new IllegalArgumentException("Não é possível atribuir um usuário inativo como fiscal");
+            }
         }
 
         // Resolve engenheiros
@@ -209,6 +227,9 @@ public class ObraService {
                 User engenheiro = userRepository.findById(engenheiroId)
                         .orElseThrow(
                                 () -> new UserNotFoundException("Engenheiro não encontrado com id: " + engenheiroId));
+                if (!engenheiro.isEnabled()) {
+                    throw new IllegalArgumentException("Não é possível atribuir um usuário inativo como engenheiro");
+                }
                 engenheiros.add(engenheiro);
             }
         }
