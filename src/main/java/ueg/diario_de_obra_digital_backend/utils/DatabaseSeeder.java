@@ -5,15 +5,18 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ueg.diario_de_obra_digital_backend.model.*;
+import ueg.diario_de_obra_digital_backend.repository.*;
+import ueg.diario_de_obra_digital_backend.service.FileStorageService;
+import org.springframework.core.io.ResourceLoader;
+import ueg.diario_de_obra_digital_backend.enums.DiarioStatus;
+import org.springframework.transaction.support.TransactionTemplate;
 import ueg.diario_de_obra_digital_backend.enums.ObraStatus;
 import ueg.diario_de_obra_digital_backend.enums.UserRole;
-import ueg.diario_de_obra_digital_backend.model.Obra;
-import ueg.diario_de_obra_digital_backend.model.EnderecoObra;
-import ueg.diario_de_obra_digital_backend.model.User;
-import ueg.diario_de_obra_digital_backend.repository.ObraRepository;
-import ueg.diario_de_obra_digital_backend.repository.UserRepository;
 
+import java.io.InputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -22,15 +25,31 @@ import java.util.Random;
 public class DatabaseSeeder {
         private final UserRepository userRepository;
         private final ObraRepository obraRepository;
+        private final MaoDeObraRepository maoDeObraRepository;
+        private final EquipamentoRepository equipamentoRepository;
+        private final ServicoRepository servicoRepository;
+        private final DiarioDeObraRepository diarioDeObraRepository;
         private final PasswordEncoder passwordEncoder;
+        private final FileStorageService fileStorageService;
+        private final ResourceLoader resourceLoader;
+        private final TransactionTemplate transactionTemplate;
 
         @Bean
         public CommandLineRunner seedDataBase() {
                 return args -> {
+                        transactionTemplate.execute(status -> {
+                                runSeeder();
+                                return null;
+                        });
+                };
+        }
+
+        public void runSeeder() {
+                try {
                         // ---------------------------------------------------------
                         // 1. SEED DO ADMIN
                         // ---------------------------------------------------------
-                        if (userRepository.findByLogin("admin@gmail.com") == null) {
+                        if (userRepository.findUserByLogin("admin@gmail.com").isEmpty()) {
                                 System.out.println("Iniciando Seeding do ADMIN...");
                                 User user = new User();
 
@@ -61,7 +80,7 @@ public class DatabaseSeeder {
                         // ---------------------------------------------------------
                         // 2. SEED DOS 30 NOVOS USUÁRIOS (ALEATÓRIOS)
                         // ---------------------------------------------------------
-                        if (userRepository.findByLogin("miguel@gmail.com") == null) {
+                        if (userRepository.findUserByLogin("miguel@gmail.com").isEmpty()) {
                                 System.out.println("Gerando 30 usuários aleatórios...");
 
                                 // Lista de primeiros nomes (garante login único: nome@gmail.com)
@@ -227,6 +246,140 @@ public class DatabaseSeeder {
                                 System.out.println("Seeding de obras concluído. Total: " + obrasData.length
                                                 + " obras inseridas.");
                         }
-                };
+
+                        // ---------------------------------------------------------
+                        // 4. SEED DE MÃO DE OBRA
+                        // ---------------------------------------------------------
+                        if (maoDeObraRepository.count() == 0) {
+                                System.out.println("Iniciando Seeding de Mão de Obra...");
+                                String[] mdoNomes = {
+                                        "MEIO OF PEDREIRO", "ARMADOR", "CARPINTEIRO", "PEDREIRO", "SERVENTE",
+                                        "SERRALHEIRO", "PINTOR", "ELETRICISTA", "MESTRE DE OBRA", "OP DE BETONEIRA",
+                                        "SERVICOS GERAIS", "PORTEIRO", "ENC DE OBRA", "ENC DE ALMOXARIFADO",
+                                        "TEC SEG DO TRABALHO", "ASS ADMINISTRATIVO", "ENC DE SERRALHEIRIA",
+                                        "ENC DE ARMACAO", "DPTO PESSOAL", "AUXILIAR DE ENGENHARIA",
+                                        "ENGENHEIRO EXECUÇÃO", "ENGENHEIRO PLANEJAMENTO", "MOTORISTA",
+                                        "SUPERVISOR DE OBRA"
+                                };
+                                for (String nome : mdoNomes) {
+                                        MaoDeObra mdo = new MaoDeObra();
+                                        mdo.setNome(nome);
+                                        maoDeObraRepository.save(mdo);
+                                }
+                                System.out.println("Mão de Obra inserida com sucesso.");
+                        }
+
+                        // ---------------------------------------------------------
+                        // 5. SEED DE EQUIPAMENTOS
+                        // ---------------------------------------------------------
+                        if (equipamentoRepository.count() == 0) {
+                                System.out.println("Iniciando Seeding de Equipamentos...");
+                                String[] equipNomes = {
+                                        "CAMINHÃO CAÇAMBA", "MARTELETE", "MINI CARREGADEIRA", "MOTONIVELADORA",
+                                        "PÁ CARREGADEIRA", "ROLO COMPACTADOR", "TRATOR C/ GRADE", "TRATOR DE ESTEIRA",
+                                        "CAMINHÃO MUNCK", "RETROESCAVADEIRA", "GUINDASTE", "CARRETA",
+                                        "PLATAFORMA ARTICULADA", "PLATAFORMA TESOURA", "VIBRO ACABADORA",
+                                        "ACABADORA DUPLA", "REGUA VIBRATÓRIA", "CAMINHÃO BETONEIRA"
+                                };
+                                for (String nome : equipNomes) {
+                                        Equipamento e = new Equipamento();
+                                        e.setNome(nome);
+                                        equipamentoRepository.save(e);
+                                }
+                                System.out.println("Equipamentos inseridos com sucesso.");
+                        }
+
+                        // ---------------------------------------------------------
+                        // 6. SEED DE SERVIÇOS
+                        // ---------------------------------------------------------
+                        if (servicoRepository.count() == 0) {
+                                System.out.println("Iniciando Seeding de Serviços...");
+                                String[][] servicosData = {
+                                        {"SOLDADOR", "UN"},
+                                        {"MONTADOR", "UN"},
+                                        {"ESCAVAÇÃO", "m³"},
+                                        {"ALVENARIA", "m²"},
+                                        {"PINTURA", "m²"},
+                                        {"PISO", "m²"}
+                                };
+                                for (String[] data : servicosData) {
+                                        Servico s = new Servico();
+                                        s.setNome(data[0]);
+                                        s.setUnidadeMedida(data[1]);
+                                        servicoRepository.save(s);
+                                }
+                                System.out.println("Serviços inseridos com sucesso.");
+                        }
+
+                        // ---------------------------------------------------------
+                        // 7. SEED DE DIÁRIOS DE OBRA
+                        // ---------------------------------------------------------
+                        if (diarioDeObraRepository.count() == 0) {
+                                System.out.println("Iniciando Seeding de Diários de Obra...");
+                                List<Obra> obrasAtivas = obraRepository.findAllByStatus(ObraStatus.ATIVA);
+                                List<MaoDeObra> todosMdo = maoDeObraRepository.findAll();
+                                List<Servico> todosServicos = servicoRepository.findAll();
+                                List<Equipamento> todosEquipamentos = equipamentoRepository.findAll();
+                                Random random = new Random();
+
+                                for (Obra obra : obrasAtivas) {
+                                        // Cria 2 diários para cada obra ativa (datas diferentes)
+                                        for (int d = 0; d < 2; d++) {
+                                                DiarioDeObra diario = new DiarioDeObra();
+                                                diario.setObra(obra);
+                                                diario.setData(LocalDate.now().minusDays(d + 1));
+                                                diario.setCondicaoClimatica("SOL");
+                                                diario.setObservacoes("Diário gerado automaticamente na carga inicial.");
+                                                diario.setStatus(d == 0 ? DiarioStatus.VALIDO : DiarioStatus.AGUARDANDO_AVALIACAO);
+                                                
+                                                // Autor: o primeiro engenheiro da obra ou o admin
+                                                User autor = !obra.getEngenheiros().isEmpty() 
+                                                        ? obra.getEngenheiros().iterator().next() 
+                                                        : userRepository.findUserByLogin("admin@gmail.com").orElse(null);
+                                                diario.setAutor(autor);
+
+                                                // Tenta carregar imagem do resources
+                                                try (InputStream is = resourceLoader.getResource("classpath:img.png").getInputStream()) {
+                                                        String fotoNome = fileStorageService.storeFile(is, "img.png");
+                                                        diario.getFotos().add(fotoNome);
+                                                } catch (Exception e) {
+                                                        System.err.println("Erro ao carregar img.png dos resources para o seeder: " + e.getMessage());
+                                                }
+
+                                                // Itens aleatórios
+                                                // Mão de Obra
+                                                for (int i = 0; i < 3; i++) {
+                                                        DiarioMaoDeObra dm = new DiarioMaoDeObra();
+                                                        dm.setDiario(diario);
+                                                        dm.setMaoDeObra(todosMdo.get(random.nextInt(todosMdo.size())));
+                                                        dm.setQuantidade(random.nextInt(5) + 1);
+                                                        diario.getMaoDeObra().add(dm);
+                                                }
+                                                // Serviços
+                                                for (int i = 0; i < 2; i++) {
+                                                        DiarioServico ds = new DiarioServico();
+                                                        ds.setDiario(diario);
+                                                        ds.setServico(todosServicos.get(random.nextInt(todosServicos.size())));
+                                                        ds.setQuantidade((double) (random.nextInt(10) + 1));
+                                                        diario.getServicosExecutados().add(ds);
+                                                }
+                                                // Equipamentos
+                                                for (int i = 0; i < 2; i++) {
+                                                        DiarioEquipamento de = new DiarioEquipamento();
+                                                        de.setDiario(diario);
+                                                        de.setEquipamento(todosEquipamentos.get(random.nextInt(todosEquipamentos.size())));
+                                                        de.setQuantidade(random.nextInt(3) + 1);
+                                                        diario.getEquipamentos().add(de);
+                                                }
+
+                                                diarioDeObraRepository.save(diario);
+                                        }
+                                }
+                                System.out.println("Seeding de Diários de Obra concluído.");
+                        }
+                } catch (Exception e) {
+                        System.err.println("Erro durante o seeding: " + e.getMessage());
+                        e.printStackTrace();
+                }
         }
 }
