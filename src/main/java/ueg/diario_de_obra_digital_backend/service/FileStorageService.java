@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class FileStorageService {
@@ -49,18 +50,18 @@ public class FileStorageService {
       throw new InvalidFileName("Nome do arquivo inválido, renomeie e tente novamente.");
     }
 
-    System.out.print(originalFileName);
+    // Gera nome único com UUID para evitar colisões entre arquivos com mesmo nome
+    String uniqueFileName = UUID.randomUUID() + "_" + originalFileName;
 
     // efetivamente salva o arquivo no diretório
     try {
       // constrói o caminho de destino, usando o método resolve
-      Path targetLocation = this.fileStorageLocation.resolve(originalFileName);
+      Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
       try (InputStream inputStream = file.getInputStream()) {
         Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
       }
 
-      // posteriormente o nome será tratado, por isso o retorno vai ser um nome que contém data e outras informações relevantes
-      return originalFileName;
+      return uniqueFileName;
     } catch (IOException e) {
       throw new FileStorageCreationException("Não foi possível salvar o arquivo");
     }
@@ -80,6 +81,17 @@ public class FileStorageService {
       }
     } catch (MalformedURLException e) {
       throw new FileNotFoundInStorageException("Arquivo não encontrado no storage: " + fileName);
+    }
+  }
+
+  // método que deleta um arquivo do storage pelo nome (usado ao remover fotos do diário)
+  public void deleteFile(String fileName) {
+    try {
+      Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+      Files.deleteIfExists(filePath);
+    } catch (IOException e) {
+      // Apenas loga o erro sem interromper a operação principal
+      System.err.println("Não foi possível deletar o arquivo: " + fileName + " — " + e.getMessage());
     }
   }
 }

@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.http.HttpStatus;
 import ueg.diario_de_obra_digital_backend.service.exception.*;
 import org.springframework.security.core.AuthenticationException;
 
@@ -60,5 +59,25 @@ public class ControllerExceptionHandler {
     System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário ou senha inválidos.");
+  }
+
+  @ExceptionHandler(DiarioNotFoundEx.class)
+  public ResponseEntity<String> handleDiarioNotFoundException(DiarioNotFoundEx e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+  }
+
+  @ExceptionHandler(DiarioDuplicadoEx.class)
+  public ResponseEntity<String> handleDiarioDuplicadoException(DiarioDuplicadoEx e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+  }
+
+  @ExceptionHandler(DiarioEditForbiddenEx.class)
+  public ResponseEntity<String> handleDiarioEditForbiddenException(DiarioEditForbiddenEx e) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+  }
+
+  @ExceptionHandler(DiarioStatusEx.class)
+  public ResponseEntity<String> handleDiarioStatusException(DiarioStatusEx e) {
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
   }
 }
