@@ -281,17 +281,22 @@ public class DiarioDeObraService {
     return new DiarioResponseDto(diario);
   }
 
-  public Page<DiarioResponseDto> list(Long obraId, LocalDate data, Long autorId, Pageable pageable) {
+  public List<DiarioResponseDto> listByObraId(Long obraId) {
+    Specification<DiarioDeObra> spec = isNotDeleted().and(obraIdSelected(obraId));
+    return diarioDeObraRepository.findAll(spec).stream().map(DiarioResponseDto::new).toList();
+  }
+
+  public Page<DiarioResponseDto> list(String obraNome, LocalDate data, String autorNome, Pageable pageable) {
     Specification<DiarioDeObra> spec = isNotDeleted();
 
-    if (obraId != null) {
-      spec = spec.and(obraIdSelected(obraId));
+    if (StringUtils.hasText(obraNome)) {
+      spec = spec.and(obraNomeSelected(obraNome));
     }
     if (data != null) {
       spec = spec.and(dataSelected(data));
     }
-    if (autorId != null) {
-      spec = spec.and(autorIdSelected(autorId));
+    if (StringUtils.hasText(autorNome)) {
+      spec = spec.and(autorNomeSelected(autorNome));
     }
 
     Page<DiarioDeObra> diarios = diarioDeObraRepository.findAll(spec, pageable);

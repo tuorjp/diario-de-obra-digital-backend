@@ -34,9 +34,9 @@ public class DiarioDeObraController {
   /** GET /diario — Listar diários com filtros (obra, data, autor) paginado */
   @GetMapping
   public ResponseEntity<Page<DiarioResponseDto>> list(
-          @RequestParam(required = false) Long obra,
+          @RequestParam(required = false) String obra,
           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-          @RequestParam(required = false) Long autor,
+          @RequestParam(required = false) String autor,
           Pageable pageable
   ) {
     return ResponseEntity.ok(diarioDeObraService.list(obra, data, autor, pageable));
@@ -109,7 +109,7 @@ public class DiarioDeObraController {
   /** GET /diario/obra/{obraId} — Listar diários ativos de uma obra (legado, usa Specification internamente) */
   @GetMapping("/obra/{obraId}")
   public ResponseEntity<List<DiarioResponseDto>> listByObra(@PathVariable Long obraId) {
-    return ResponseEntity.ok(diarioDeObraService.list(obraId, null, null, Pageable.unpaged()).getContent());
+    return ResponseEntity.ok(diarioDeObraService.listByObraId(obraId));
   }
 
   /** GET /diario/fotos/{filename:.+} — Servir imagem armazenada */
