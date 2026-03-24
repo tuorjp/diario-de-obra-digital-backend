@@ -34,11 +34,14 @@ public class AuthenticationController {
     var auth = this.authenticationManager.authenticate(usernamePassword);
 
     // Se a autenticação foi bem-sucedida, gera o token JWT
-    var token = tokenService.generateToken((User) auth.getPrincipal());
+    User user = (User) auth.getPrincipal();
+    var token = tokenService.generateToken(user);
 
     // Retorna o token em um DTO
     LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
     loginResponseDTO.setToken(token);
+    loginResponseDTO.setId(user.getId());
+    loginResponseDTO.setRole(user.getRole().name());
 
     return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
   }

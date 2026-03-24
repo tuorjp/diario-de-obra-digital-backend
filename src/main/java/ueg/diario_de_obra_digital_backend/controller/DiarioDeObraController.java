@@ -20,6 +20,8 @@ import ueg.diario_de_obra_digital_backend.service.FileStorageService;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("diario")
@@ -29,14 +31,15 @@ public class DiarioDeObraController {
   private final DiarioDeObraService diarioDeObraService;
   private final FileStorageService fileStorageService;
 
-  /** GET /diario — Listar diários com filtros (obra, data, autor) */
+  /** GET /diario — Listar diários com filtros (obra, data, autor) paginado */
   @GetMapping
-  public ResponseEntity<List<DiarioResponseDto>> list(
+  public ResponseEntity<Page<DiarioResponseDto>> list(
           @RequestParam(required = false) Long obra,
           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-          @RequestParam(required = false) Long autor
+          @RequestParam(required = false) Long autor,
+          Pageable pageable
   ) {
-    return ResponseEntity.ok(diarioDeObraService.list(obra, data, autor));
+    return ResponseEntity.ok(diarioDeObraService.list(obra, data, autor, pageable));
   }
 
   /** POST /diario/{obraId} — Criar novo diário (ENGENHEIRO, ADMIN) */
@@ -106,7 +109,7 @@ public class DiarioDeObraController {
   /** GET /diario/obra/{obraId} — Listar diários ativos de uma obra (legado, usa Specification internamente) */
   @GetMapping("/obra/{obraId}")
   public ResponseEntity<List<DiarioResponseDto>> listByObra(@PathVariable Long obraId) {
-    return ResponseEntity.ok(diarioDeObraService.list(obraId, null, null));
+    return ResponseEntity.ok(diarioDeObraService.list(obraId, null, null, Pageable.unpaged()).getContent());
   }
 
   /** GET /diario/fotos/{filename:.+} — Servir imagem armazenada */

@@ -28,6 +28,8 @@ import static ueg.diario_de_obra_digital_backend.specification.DiarioDeObraSpeci
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -279,7 +281,7 @@ public class DiarioDeObraService {
     return new DiarioResponseDto(diario);
   }
 
-  public List<DiarioResponseDto> list(Long obraId, LocalDate data, Long autorId) {
+  public Page<DiarioResponseDto> list(Long obraId, LocalDate data, Long autorId, Pageable pageable) {
     Specification<DiarioDeObra> spec = isNotDeleted();
 
     if (obraId != null) {
@@ -292,8 +294,8 @@ public class DiarioDeObraService {
       spec = spec.and(autorIdSelected(autorId));
     }
 
-    List<DiarioDeObra> diarios = diarioDeObraRepository.findAll(spec);
-    return diarios.stream().map(DiarioResponseDto::new).toList();
+    Page<DiarioDeObra> diarios = diarioDeObraRepository.findAll(spec, pageable);
+    return diarios.map(DiarioResponseDto::new);
   }
 
   // Lista todos até os com deletado = true
