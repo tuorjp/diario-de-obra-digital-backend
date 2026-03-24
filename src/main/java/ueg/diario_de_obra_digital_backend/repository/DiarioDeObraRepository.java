@@ -1,6 +1,7 @@
 package ueg.diario_de_obra_digital_backend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DiarioDeObraRepository extends JpaRepository<DiarioDeObra, Long> {
+public interface DiarioDeObraRepository extends JpaRepository<DiarioDeObra, Long>, JpaSpecificationExecutor<DiarioDeObra> {
   Optional<DiarioDeObra> findByObraAndData(Obra obra, LocalDate data);
 
   @Query(value = "SELECT * FROM diarios_de_obra WHERE id = :id", nativeQuery = true)

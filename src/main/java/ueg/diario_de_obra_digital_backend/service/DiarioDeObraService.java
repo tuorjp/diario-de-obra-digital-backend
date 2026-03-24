@@ -20,6 +20,11 @@ import ueg.diario_de_obra_digital_backend.dto.EquipamentoItemDto;
 
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
+import org.springframework.data.jpa.domain.Specification;
+
+import static org.springframework.data.jpa.domain.Specification.where;
+import static ueg.diario_de_obra_digital_backend.specification.DiarioDeObraSpecification.*;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -274,14 +279,21 @@ public class DiarioDeObraService {
     return new DiarioResponseDto(diario);
   }
 
-  public List<DiarioResponseDto> listByObra(Long obraId) {
-    findObraOrThrow(obraId); // valida que a obra existe
-    List<DiarioDeObra> diarios = diarioDeObraRepository.findAllByObraIdAndDeletadoFalse(obraId);
-    List<DiarioResponseDto> result = new ArrayList<>();
-    for (DiarioDeObra d : diarios) {
-      result.add(new DiarioResponseDto(d));
+  public List<DiarioResponseDto> list(Long obraId, LocalDate data, Long autorId) {
+    Specification<DiarioDeObra> spec = isNotDeleted();
+
+    if (obraId != null) {
+      spec = spec.and(obraIdSelected(obraId));
     }
-    return result;
+    if (data != null) {
+      spec = spec.and(dataSelected(data));
+    }
+    if (autorId != null) {
+      spec = spec.and(autorIdSelected(autorId));
+    }
+
+    List<DiarioDeObra> diarios = diarioDeObraRepository.findAll(spec);
+    return diarios.stream().map(DiarioResponseDto::new).toList();
   }
 
   // Lista todos até os com deletado = true

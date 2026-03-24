@@ -2,6 +2,7 @@ package ueg.diario_de_obra_digital_backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import ueg.diario_de_obra_digital_backend.model.User;
 import ueg.diario_de_obra_digital_backend.service.DiarioDeObraService;
 import ueg.diario_de_obra_digital_backend.service.FileStorageService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -26,6 +28,16 @@ public class DiarioDeObraController {
 
   private final DiarioDeObraService diarioDeObraService;
   private final FileStorageService fileStorageService;
+
+  /** GET /diario — Listar diários com filtros (obra, data, autor) */
+  @GetMapping
+  public ResponseEntity<List<DiarioResponseDto>> list(
+          @RequestParam(required = false) Long obra,
+          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+          @RequestParam(required = false) Long autor
+  ) {
+    return ResponseEntity.ok(diarioDeObraService.list(obra, data, autor));
+  }
 
   /** POST /diario/{obraId} — Criar novo diário (ENGENHEIRO, ADMIN) */
   @PostMapping(value = "/{obraId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -91,10 +103,10 @@ public class DiarioDeObraController {
     return ResponseEntity.ok(diarioDeObraService.findById(id));
   }
 
-  /** GET /diario/obra/{obraId} — Listar diários ativos de uma obra */
+  /** GET /diario/obra/{obraId} — Listar diários ativos de uma obra (legado, usa Specification internamente) */
   @GetMapping("/obra/{obraId}")
   public ResponseEntity<List<DiarioResponseDto>> listByObra(@PathVariable Long obraId) {
-    return ResponseEntity.ok(diarioDeObraService.listByObra(obraId));
+    return ResponseEntity.ok(diarioDeObraService.list(obraId, null, null));
   }
 
   /** GET /diario/fotos/{filename:.+} — Servir imagem armazenada */
