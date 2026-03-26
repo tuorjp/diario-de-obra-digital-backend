@@ -56,10 +56,8 @@ public class DiarioDeObra implements Serializable {
   @Column(name = "foto_url")
   private List<String> fotos = new ArrayList<>();
 
-  @ElementCollection
-  @CollectionTable(name = "diario_visitas", joinColumns = @JoinColumn(name = "diario_id"))
-  @Column(name = "visita_registro")
-  private List<String> visitas = new ArrayList<>();
+  @OneToMany(mappedBy = "diario", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Ocorrencia> ocorrencias = new ArrayList<>();
 
   @Lob //Para textos mais longos
   @Column(columnDefinition = "TEXT")

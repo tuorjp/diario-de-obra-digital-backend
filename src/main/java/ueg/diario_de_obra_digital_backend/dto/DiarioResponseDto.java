@@ -29,7 +29,7 @@ public class DiarioResponseDto {
   private final String observacoes;
   private final DiarioStatus status;
   private final List<String> fotos;
-  private final List<String> visitas;
+  private final List<OcorrenciaResponseDto> ocorrencias;
 
   // Itens do Diário
   private final List<MaoDeObraItemResponseDTO> maoDeObra;
@@ -54,7 +54,7 @@ public class DiarioResponseDto {
     this.observacoes = d.getObservacoes();
     this.status = d.getStatus();
     this.fotos = d.getFotos();
-    this.visitas = d.getVisitas();
+    this.ocorrencias = mapOcorrencias(d.getOcorrencias());
     this.autorId = d.getAutor() != null ? d.getAutor().getId() : null;
     this.autorNome = d.getAutor() != null ? d.getAutor().getName() : null;
     this.validadorId = d.getValidador() != null ? d.getValidador().getId() : null;
@@ -63,6 +63,19 @@ public class DiarioResponseDto {
     this.maoDeObra = mapMaoDeObra(d.getMaoDeObra());
     this.servicos = mapServicos(d.getServicosExecutados());
     this.equipamentos = mapEquipamentos(d.getEquipamentos());
+  }
+
+  private List<OcorrenciaResponseDto> mapOcorrencias(List<ueg.diario_de_obra_digital_backend.model.Ocorrencia> items) {
+    if (items == null) return List.of();
+    return items.stream()
+            .map(o -> new OcorrenciaResponseDto(
+                    o.getId(),
+                    o.getTipo(),
+                    o.getOcorrencia(),
+                    o.getAutor() != null ? o.getAutor().getId() : null,
+                    o.getAutor() != null ? o.getAutor().getName() : null
+            ))
+            .collect(Collectors.toList());
   }
 
   private List<MaoDeObraItemResponseDTO> mapMaoDeObra(Set<DiarioMaoDeObra> items) {
@@ -123,6 +136,22 @@ public class DiarioResponseDto {
       this.equipamentoId = id;
       this.nome = nome;
       this.quantidade = qtd;
+    }
+  }
+
+  @Getter
+  public static class OcorrenciaResponseDto {
+    private final Long id;
+    private final String tipo;
+    private final String ocorrencia;
+    private final Long autorId;
+    private final String autorNome;
+    public OcorrenciaResponseDto(Long id, String tipo, String ocorrencia, Long autorId, String autorNome) {
+      this.id = id;
+      this.tipo = tipo;
+      this.ocorrencia = ocorrencia;
+      this.autorId = autorId;
+      this.autorNome = autorNome;
     }
   }
 }

@@ -16,5 +16,5 @@ public class CreateDiarioDto {
   private List<MaoDeObraItemDto> maoDeObra = new ArrayList<>();
   private List<ServicoItemDto> servicos = new ArrayList<>();
   private List<EquipamentoItemDto> equipamentos = new ArrayList<>();
-  private List<String> visitas = new ArrayList<>();
+  private List<CreateOcorrenciaDto> ocorrencias = new ArrayList<>();
 }

@@ -15,5 +15,5 @@ public class UpdateDiarioDto {
   private List<MaoDeObraItemDto> maoDeObra;
   private List<ServicoItemDto> servicos;
   private List<EquipamentoItemDto> equipamentos;
-  private List<String> visitas;
+  private List<CreateOcorrenciaDto> ocorrencias;
 }

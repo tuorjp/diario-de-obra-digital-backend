@@ -12,6 +12,7 @@ import ueg.diario_de_obra_digital_backend.model.*;
 import ueg.diario_de_obra_digital_backend.repository.*;
 import ueg.diario_de_obra_digital_backend.service.exception.*;
 import ueg.diario_de_obra_digital_backend.dto.CreateDiarioDto;
+import ueg.diario_de_obra_digital_backend.dto.CreateOcorrenciaDto;
 import ueg.diario_de_obra_digital_backend.dto.UpdateDiarioDto;
 import ueg.diario_de_obra_digital_backend.dto.DiarioResponseDto;
 import ueg.diario_de_obra_digital_backend.dto.MaoDeObraItemDto;
@@ -96,7 +97,16 @@ public class DiarioDeObraService {
     diario.setCondicaoClimatica(dto.getCondicaoClimatica());
     diario.setObservacoes(dto.getObservacoes());
     diario.setStatus(DiarioStatus.AGUARDANDO_AVALIACAO);
-    if (dto.getVisitas() != null) diario.getVisitas().addAll(dto.getVisitas());
+    if (dto.getOcorrencias() != null) {
+      for (CreateOcorrenciaDto oDto : dto.getOcorrencias()) {
+        Ocorrencia oc = new Ocorrencia();
+        oc.setTipo(oDto.getTipo());
+        oc.setOcorrencia(oDto.getOcorrencia());
+        oc.setAutor(currentUser);
+        oc.setDiario(diario);
+        diario.getOcorrencias().add(oc);
+      }
+    }
 
     // Salva as fotos no storage e armazena os nomes únicos no diário
     for (MultipartFile foto : fotos) {
@@ -172,9 +182,16 @@ public class DiarioDeObraService {
     if (dto.getObservacoes() != null) {
       diario.setObservacoes(dto.getObservacoes());
     }
-    if (dto.getVisitas() != null) {
-      diario.getVisitas().clear();
-      diario.getVisitas().addAll(dto.getVisitas());
+    if (dto.getOcorrencias() != null) {
+      diario.getOcorrencias().clear();
+      for (CreateOcorrenciaDto oDto : dto.getOcorrencias()) {
+        Ocorrencia oc = new Ocorrencia();
+        oc.setTipo(oDto.getTipo());
+        oc.setOcorrencia(oDto.getOcorrencia());
+        oc.setAutor(currentUser);
+        oc.setDiario(diario);
+        diario.getOcorrencias().add(oc);
+      }
     }
 
     // Substitui itens de mão de obra se fornecidos
