@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class FileStorageService {
@@ -42,25 +43,41 @@ public class FileStorageService {
   }
 
   public String storeFile(MultipartFile file) {
-    String originalFileName = StringUtils
-        .cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+    try (InputStream inputStream = file.getInputStream()) {
+      return storeFile(inputStream, file.getOriginalFilename());
+    } catch (IOException e) {
+      throw new FileStorageCreationException("Não foi possível salvar o arquivo");
+    }
+  }
 
-    if(originalFileName.contains("..")) {
+  public String storeFileAsName(MultipartFile file, String fixedFileName) {
+    try (InputStream inputStream = file.getInputStream()) {
+      Path targetLocation = this.fileStorageLocation.resolve(fixedFileName);
+      Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+      return fixedFileName;
+    } catch (IOException e) {
+      throw new FileStorageCreationException("Não foi possível salvar o arquivo com o nome: " + fixedFileName);
+    }
+  }
+
+  // Novo método para facilitar seeding a partir de InputStream (ex: resources)
+  public String storeFile(InputStream inputStream, String originalFileName) {
+    String cleanedFileName = StringUtils.cleanPath(Objects.requireNonNull(originalFileName));
+
+    if(cleanedFileName.contains("..")) {
       throw new InvalidFileName("Nome do arquivo inválido, renomeie e tente novamente.");
     }
 
-    System.out.print(originalFileName);
+    // Gera nome único com UUID para evitar colisões entre arquivos com mesmo nome
+    String uniqueFileName = UUID.randomUUID() + "_" + cleanedFileName;
 
     // efetivamente salva o arquivo no diretório
     try {
       // constrói o caminho de destino, usando o método resolve
-      Path targetLocation = this.fileStorageLocation.resolve(originalFileName);
-      try (InputStream inputStream = file.getInputStream()) {
-        Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
-      }
+      Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
+      Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-      // posteriormente o nome será tratado, por isso o retorno vai ser um nome que contém data e outras informações relevantes
-      return originalFileName;
+      return uniqueFileName;
     } catch (IOException e) {
       throw new FileStorageCreationException("Não foi possível salvar o arquivo");
     }
@@ -80,6 +97,17 @@ public class FileStorageService {
       }
     } catch (MalformedURLException e) {
       throw new FileNotFoundInStorageException("Arquivo não encontrado no storage: " + fileName);
+    }
+  }
+
+  // método que deleta um arquivo do storage pelo nome (usado ao remover fotos do diário)
+  public void deleteFile(String fileName) {
+    try {
+      Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+      Files.deleteIfExists(filePath);
+    } catch (IOException e) {
+      // Apenas loga o erro sem interromper a operação principal
+      System.err.println("Não foi possível deletar o arquivo: " + fileName + " — " + e.getMessage());
     }
   }
 }

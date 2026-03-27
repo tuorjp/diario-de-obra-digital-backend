@@ -46,6 +46,7 @@ public class SecurityConfigurations {
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/diario/fotos/**").permitAll()
                         .requestMatchers("/error").permitAll()
 
                         // Registro é EXCLUSIVO de ADMIN
