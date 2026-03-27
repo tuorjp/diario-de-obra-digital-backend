@@ -108,13 +108,7 @@ public class DiarioDeObraService {
       }
     }
 
-    // Salva as fotos no storage e armazena os nomes únicos no diário
-    for (MultipartFile foto : fotos) {
-      if (foto != null && !foto.isEmpty()) {
-        String fileName = fileStorageService.storeFile(foto);
-        diario.getFotos().add(fileName);
-      }
-    }
+    // Postergar as fotos para depois do save do Diário (pra termos idDiario)
 
     // Mão de obra
     for (MaoDeObraItemDto item : dto.getMaoDeObra()) {
@@ -150,6 +144,21 @@ public class DiarioDeObraService {
         de.setEquipamento(equip);
         de.setQuantidade(item.getQuantidade());
         diario.getEquipamentos().add(de);
+      }
+    }
+
+    diario = diarioDeObraRepository.save(diario);
+
+    // ID do diário gerado, gerar nome das fotos
+    int maxId = 1;
+    for (MultipartFile foto : fotos) {
+      if (foto != null && !foto.isEmpty()) {
+        String ext = StringUtils.getFilenameExtension(foto.getOriginalFilename());
+        ext = (ext != null && !ext.isEmpty()) ? "." + ext : "";
+        String fileName = diario.getObra().getId() + "_" + diario.getId() + "_" + maxId + ext;
+        fileStorageService.storeFileAsName(foto, fileName);
+        diario.getFotos().add(fileName);
+        maxId++;
       }
     }
 
@@ -236,12 +245,23 @@ public class DiarioDeObraService {
       }
     }
 
-    // Adiciona novas fotos se fornecidas (não remove as antigas)
+    // Remove as fotos existentes do Storage para regerar limpo
+    for (String oldFoto : diario.getFotos()) {
+        fileStorageService.deleteFile(oldFoto);
+    }
+    diario.getFotos().clear();
+
+    // Adiciona as fotos unificadas (que podem ser antigas recarregadas ou as novas criadas localmente)
     if (novasFotos != null) {
+      int idx = 1;
       for (MultipartFile foto : novasFotos) {
         if (foto != null && !foto.isEmpty()) {
-          String fileName = fileStorageService.storeFile(foto);
+          String ext = StringUtils.getFilenameExtension(foto.getOriginalFilename());
+          ext = (ext != null && !ext.isEmpty()) ? "." + ext : "";
+          String fileName = diario.getObra().getId() + "_" + diario.getId() + "_" + idx + ext;
+          fileStorageService.storeFileAsName(foto, fileName);
           diario.getFotos().add(fileName);
+          idx++;
         }
       }
     }

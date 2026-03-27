@@ -50,6 +50,16 @@ public class FileStorageService {
     }
   }
 
+  public String storeFileAsName(MultipartFile file, String fixedFileName) {
+    try (InputStream inputStream = file.getInputStream()) {
+      Path targetLocation = this.fileStorageLocation.resolve(fixedFileName);
+      Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+      return fixedFileName;
+    } catch (IOException e) {
+      throw new FileStorageCreationException("Não foi possível salvar o arquivo com o nome: " + fixedFileName);
+    }
+  }
+
   // Novo método para facilitar seeding a partir de InputStream (ex: resources)
   public String storeFile(InputStream inputStream, String originalFileName) {
     String cleanedFileName = StringUtils.cleanPath(Objects.requireNonNull(originalFileName));
