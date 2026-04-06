@@ -318,9 +318,9 @@ public class DiarioDeObraService {
     return new DiarioResponseDto(diario);
   }
 
-  public List<DiarioResponseDto> listByObraId(Long obraId) {
+  public Page<DiarioResponseDto> listByObraId(Long obraId, Pageable pageable) {
     Specification<DiarioDeObra> spec = isNotDeleted().and(obraIdSelected(obraId));
-    return diarioDeObraRepository.findAll(spec).stream().map(DiarioResponseDto::new).toList();
+    return diarioDeObraRepository.findAll(spec, pageable).map(DiarioResponseDto::new);
   }
 
   public Page<DiarioResponseDto> list(String obraNome, LocalDate data, String autorNome, Pageable pageable) {

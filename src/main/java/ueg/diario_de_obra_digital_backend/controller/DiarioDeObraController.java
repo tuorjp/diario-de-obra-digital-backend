@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("diario")
@@ -106,10 +107,13 @@ public class DiarioDeObraController {
     return ResponseEntity.ok(diarioDeObraService.findById(id));
   }
 
-  /** GET /diario/obra/{obraId} — Listar diários ativos de uma obra (legado, usa Specification internamente) */
+  /** GET /diario/obra/{obraId} — Listar diários ativos de uma obra, paginado */
   @GetMapping("/obra/{obraId}")
-  public ResponseEntity<List<DiarioResponseDto>> listByObra(@PathVariable Long obraId) {
-    return ResponseEntity.ok(diarioDeObraService.listByObraId(obraId));
+  public ResponseEntity<Page<DiarioResponseDto>> listByObra(
+          @PathVariable Long obraId,
+          @PageableDefault(size = 10) Pageable pageable
+  ) {
+    return ResponseEntity.ok(diarioDeObraService.listByObraId(obraId, pageable));
   }
 
   /** GET /diario/fotos/{filename:.+} — Servir imagem armazenada */
