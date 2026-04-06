@@ -150,13 +150,13 @@ public class ObraService {
         return new ObraResponseDTO(obra);
     }
 
-    public Page<ObraResponseDTO> search(String term, String searchField, ObraStatus status, Pageable pageable, User currentUser) {
+    public Page<ObraResponseDTO> search(String term, String searchField, List<ObraStatus> statuses, Pageable pageable, User currentUser) {
         Specification<Obra> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.GESTOR) {
                 predicates.add(cb.equal(root.get("criador"), currentUser));
-            } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.FISCAL || 
+            } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.FISCAL ||
                        currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.ENGENHEIRO) {
                 predicates.add(cb.or(
                         cb.equal(root.get("fiscal"), currentUser),
@@ -164,8 +164,8 @@ public class ObraService {
                 ));
             }
 
-            if (status != null) {
-                predicates.add(cb.equal(root.get("status"), status));
+            if (statuses != null && !statuses.isEmpty()) {
+                predicates.add(root.get("status").in(statuses));
             }
 
             if (StringUtils.hasText(term) && StringUtils.hasText(searchField)) {

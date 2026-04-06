@@ -16,6 +16,8 @@ import ueg.diario_de_obra_digital_backend.enums.ObraStatus;
 import ueg.diario_de_obra_digital_backend.model.User;
 import ueg.diario_de_obra_digital_backend.service.ObraService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("obra")
 @RequiredArgsConstructor
@@ -63,7 +65,7 @@ public class ObraController {
             @RequestParam(defaultValue = "asc")   String sortDir,
             @RequestParam(defaultValue = "projeto") String searchField,
             @RequestParam(required = false)       String term,
-            @RequestParam(required = false)       ObraStatus status,
+            @RequestParam(required = false)       List<ObraStatus> status,
             @AuthenticationPrincipal User currentUser
     ) {
         Sort sort = sortDir.equalsIgnoreCase("desc")
