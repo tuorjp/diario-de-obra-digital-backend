@@ -21,7 +21,11 @@ public class PdfGeneratorService {
     private final FileStorageService fileStorageService;
 
     public byte[] generateDiariosPdf(List<DiarioDeObra> diarios) {
-        Document document = new Document();
+        if (diarios == null || diarios.isEmpty()) {
+            return new byte[0];
+        }
+
+        Document document = new Document(PageSize.A4, 36, 36, 36, 36);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         try {
@@ -30,125 +34,148 @@ public class PdfGeneratorService {
 
             Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.BLACK);
             Font subtitleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.BLACK);
-            Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK);
-            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
+            Font cardHeaderFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.WHITE);
+            Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.BLACK);
+            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+            Obra obra = diarios.get(0).getObra();
+
+            // Cabeçalho - Dados da Obra (Impresso apenas na primeira página)
+            Paragraph title = new Paragraph("Relatório de Diários de Obra", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            document.add(new Paragraph("Dados da Obra", subtitleFont));
+            document.add(new Paragraph(" "));
+
+            PdfPTable obraTable = new PdfPTable(2);
+            obraTable.setWidthPercentage(100);
+            
+            addTableRowWithBorders(obraTable, "Nome da Obra:", obra.getProjeto(), boldFont, normalFont);
+            addTableRowWithBorders(obraTable, "Contratante:", obra.getContratante(), boldFont, normalFont);
+            addTableRowWithBorders(obraTable, "Contratada:", obra.getContratada(), boldFont, normalFont);
+            addTableRowWithBorders(obraTable, "Data Início:", obra.getDataInicio() != null ? obra.getDataInicio().format(dateFormatter) : "N/D", boldFont, normalFont);
+            addTableRowWithBorders(obraTable, "Data Prevista Fim:", obra.getDataPrevistaFim() != null ? obra.getDataPrevistaFim().format(dateFormatter) : "N/D", boldFont, normalFont);
+            addTableRowWithBorders(obraTable, "Fiscal:", obra.getFiscal() != null ? obra.getFiscal().getName() : "Nenhum", boldFont, normalFont);
+            
+            String engenheirosStr = obra.getEngenheiros() != null && !obra.getEngenheiros().isEmpty()
+                    ? obra.getEngenheiros().stream().map(User::getName).collect(Collectors.joining(", "))
+                    : "Nenhum";
+            addTableRowWithBorders(obraTable, "Engenheiros:", engenheirosStr, boldFont, normalFont);
+            
+            addTableRowWithBorders(obraTable, "Gestor (Criador):", obra.getCriador() != null ? obra.getCriador().getName() : "N/D", boldFont, normalFont);
+            
+            document.add(obraTable);
+            document.add(new Paragraph(" "));
+            
+            BaseColor cardHeaderBgColor = new BaseColor(59, 130, 246); // Blue
+            
+            // Diários
             for (int i = 0; i < diarios.size(); i++) {
-                if (i > 0) {
-                    document.newPage(); // Cada diário em uma nova página
-                }
+                document.newPage(); // Cada diário inicia em uma nova página
 
                 DiarioDeObra diario = diarios.get(i);
-                Obra obra = diario.getObra();
+                
+                Paragraph diarioTitle = new Paragraph("Diário de Obra #" + diario.getId(), subtitleFont);
+                diarioTitle.setSpacingAfter(10);
+                document.add(diarioTitle);
 
-                // Cabeçalho - Dados da Obra
-                Paragraph title = new Paragraph("Relatório de Diário de Obra", titleFont);
-                title.setAlignment(Element.ALIGN_CENTER);
-                title.setSpacingAfter(20);
-                document.add(title);
-
-                document.add(new Paragraph("Dados da Obra", subtitleFont));
+                // CARD: Detalhes do Diário
+                PdfPTable detailsCard = createCardTable("Detalhes Principais", cardHeaderBgColor, cardHeaderFont);
+                PdfPTable detailsContent = new PdfPTable(2);
+                detailsContent.setWidthPercentage(100);
+                addTableRow(detailsContent, "Data:", diario.getData() != null ? diario.getData().format(dateFormatter) : "N/D", boldFont, normalFont);
+                addTableRow(detailsContent, "Condição Climática:", diario.getCondicaoClimatica() != null ? diario.getCondicaoClimatica() : "N/D", boldFont, normalFont);
+                addTableRow(detailsContent, "Autor do Diário:", diario.getAutor() != null ? diario.getAutor().getName() : "N/D", boldFont, normalFont);
+                addContentToCard(detailsCard, detailsContent);
+                document.add(detailsCard);
                 document.add(new Paragraph(" "));
 
-                PdfPTable obraTable = new PdfPTable(2);
-                obraTable.setWidthPercentage(100);
-                
-                addTableRow(obraTable, "Nome da Obra:", obra.getProjeto(), boldFont, normalFont);
-                addTableRow(obraTable, "Contratante:", obra.getContratante(), boldFont, normalFont);
-                addTableRow(obraTable, "Contratada:", obra.getContratada(), boldFont, normalFont);
-                addTableRow(obraTable, "Data Início:", obra.getDataInicio() != null ? obra.getDataInicio().format(dateFormatter) : "N/D", boldFont, normalFont);
-                addTableRow(obraTable, "Data Prevista Fim:", obra.getDataPrevistaFim() != null ? obra.getDataPrevistaFim().format(dateFormatter) : "N/D", boldFont, normalFont);
-                addTableRow(obraTable, "Fiscal:", obra.getFiscal() != null ? obra.getFiscal().getName() : "Nenhum", boldFont, normalFont);
-                
-                String engenheirosStr = obra.getEngenheiros() != null && !obra.getEngenheiros().isEmpty()
-                        ? obra.getEngenheiros().stream().map(User::getName).collect(Collectors.joining(", "))
-                        : "Nenhum";
-                addTableRow(obraTable, "Engenheiros:", engenheirosStr, boldFont, normalFont);
-                
-                addTableRow(obraTable, "Gestor (Criador):", obra.getCriador() != null ? obra.getCriador().getName() : "N/D", boldFont, normalFont);
-                
-                document.add(obraTable);
-                document.add(new Paragraph(" "));
-                document.add(new Paragraph("--------------------------------------------------"));
-                document.add(new Paragraph(" "));
-
-                // Dados do Diário
-                document.add(new Paragraph("Detalhes do Diário", subtitleFont));
-                document.add(new Paragraph(" "));
-
-                PdfPTable diarioTable = new PdfPTable(2);
-                diarioTable.setWidthPercentage(100);
-                
-                addTableRow(diarioTable, "Data do Diário:", diario.getData() != null ? diario.getData().format(dateFormatter) : "N/D", boldFont, normalFont);
-                addTableRow(diarioTable, "Condição Climática:", diario.getCondicaoClimatica() != null ? diario.getCondicaoClimatica() : "N/D", boldFont, normalFont);
-                addTableRow(diarioTable, "Autor do Diário:", diario.getAutor() != null ? diario.getAutor().getName() : "N/D", boldFont, normalFont);
-                document.add(diarioTable);
-                document.add(new Paragraph(" "));
-
-                // Equipamentos
-                document.add(new Paragraph("Equipamentos Utilizados:", boldFont));
+                // CARD: Equipamentos
+                PdfPTable equipCard = createCardTable("Equipamentos Utilizados", cardHeaderBgColor, cardHeaderFont);
                 if (diario.getEquipamentos() != null && !diario.getEquipamentos().isEmpty()) {
+                    PdfPTable table = new PdfPTable(2);
+                    table.setWidthPercentage(100);
                     for (DiarioEquipamento eq : diario.getEquipamentos()) {
-                        document.add(new Paragraph("- " + eq.getEquipamento().getNome() + " (Qtd: " + eq.getQuantidade() + ")", normalFont));
+                        addTableRow(table, eq.getEquipamento().getNome(), "Qtd: " + eq.getQuantidade(), boldFont, normalFont);
                     }
+                    addContentToCard(equipCard, table);
                 } else {
-                    document.add(new Paragraph("Nenhum equipamento registrado.", normalFont));
+                    addTextToCard(equipCard, "Nenhum equipamento registrado.", normalFont);
                 }
+                document.add(equipCard);
                 document.add(new Paragraph(" "));
 
-                // Mão de Obra
-                document.add(new Paragraph("Mão de Obra:", boldFont));
+                // CARD: Mão de Obra
+                PdfPTable moCard = createCardTable("Mão de Obra", cardHeaderBgColor, cardHeaderFont);
                 if (diario.getMaoDeObra() != null && !diario.getMaoDeObra().isEmpty()) {
+                    PdfPTable table = new PdfPTable(2);
+                    table.setWidthPercentage(100);
                     for (DiarioMaoDeObra mo : diario.getMaoDeObra()) {
-                        document.add(new Paragraph("- " + mo.getMaoDeObra().getNome() + " (Qtd: " + mo.getQuantidade() + ")", normalFont));
+                        addTableRow(table, mo.getMaoDeObra().getNome(), "Qtd: " + mo.getQuantidade(), boldFont, normalFont);
                     }
+                    addContentToCard(moCard, table);
                 } else {
-                    document.add(new Paragraph("Nenhuma mão de obra registrada.", normalFont));
+                    addTextToCard(moCard, "Nenhuma mão de obra registrada.", normalFont);
                 }
+                document.add(moCard);
                 document.add(new Paragraph(" "));
 
-                // Serviços Executados
-                document.add(new Paragraph("Serviços Executados:", boldFont));
+                // CARD: Serviços Executados
+                PdfPTable servCard = createCardTable("Serviços Executados", cardHeaderBgColor, cardHeaderFont);
                 if (diario.getServicosExecutados() != null && !diario.getServicosExecutados().isEmpty()) {
+                    PdfPTable table = new PdfPTable(2);
+                    table.setWidthPercentage(100);
                     for (DiarioServico sv : diario.getServicosExecutados()) {
-                        document.add(new Paragraph("- " + sv.getServico().getNome() + " (Qtd: " + sv.getQuantidade() + ")", normalFont));
+                        addTableRow(table, sv.getServico().getNome(), "Qtd: " + sv.getQuantidade(), boldFont, normalFont);
                     }
+                    addContentToCard(servCard, table);
                 } else {
-                    document.add(new Paragraph("Nenhum serviço registrado.", normalFont));
+                    addTextToCard(servCard, "Nenhum serviço registrado.", normalFont);
                 }
+                document.add(servCard);
                 document.add(new Paragraph(" "));
 
-                // Ocorrências
-                document.add(new Paragraph("Ocorrências:", boldFont));
+                // CARD: Ocorrências
+                PdfPTable ocCard = createCardTable("Ocorrências", cardHeaderBgColor, cardHeaderFont);
                 if (diario.getOcorrencias() != null && !diario.getOcorrencias().isEmpty()) {
+                    PdfPTable table = new PdfPTable(1);
+                    table.setWidthPercentage(100);
                     for (Ocorrencia oc : diario.getOcorrencias()) {
-                        document.add(new Paragraph("- " + oc.getTipo() + ": " + oc.getOcorrencia(), normalFont));
+                        PdfPCell cell = new PdfPCell();
+                        cell.setBorder(Rectangle.NO_BORDER);
+                        cell.addElement(new Paragraph(oc.getTipo(), boldFont));
+                        cell.addElement(new Paragraph(oc.getOcorrencia(), normalFont));
+                        cell.setPaddingBottom(5);
+                        table.addCell(cell);
                     }
+                    addContentToCard(ocCard, table);
                 } else {
-                    document.add(new Paragraph("Nenhuma ocorrência registrada.", normalFont));
+                    addTextToCard(ocCard, "Nenhuma ocorrência registrada.", normalFont);
                 }
+                document.add(ocCard);
                 document.add(new Paragraph(" "));
 
-                // Observações
-                document.add(new Paragraph("Observações:", boldFont));
+                // CARD: Observações
+                PdfPTable obsCard = createCardTable("Observações", cardHeaderBgColor, cardHeaderFont);
                 String obs = diario.getObservacoes() != null && !diario.getObservacoes().isEmpty() ? diario.getObservacoes() : "Nenhuma observação.";
-                document.add(new Paragraph(obs, normalFont));
+                addTextToCard(obsCard, obs, normalFont);
+                document.add(obsCard);
                 document.add(new Paragraph(" "));
 
                 // Fotos
-                document.add(new Paragraph("Fotos:", boldFont));
-                document.add(new Paragraph(" "));
+                PdfPTable fotosCard = createCardTable("Fotos", cardHeaderBgColor, cardHeaderFont);
                 if (diario.getFotos() != null && !diario.getFotos().isEmpty()) {
-                    PdfPTable imageTable = new PdfPTable(2); // 2 fotos por linha
+                    PdfPTable imageTable = new PdfPTable(2); 
                     imageTable.setWidthPercentage(100);
                     
                     for (String fotoFileName : diario.getFotos()) {
                         try {
                             Resource resource = fileStorageService.loadFileAsResource(fotoFileName);
                             Image img = Image.getInstance(resource.getFile().getAbsolutePath());
-                            // Escalar para caber na célula
                             img.scaleToFit(200, 200);
                             
                             PdfPCell cell = new PdfPCell(img, true);
@@ -157,24 +184,22 @@ public class PdfGeneratorService {
                             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
                             imageTable.addCell(cell);
                         } catch (Exception e) {
-                            // Se a foto não for encontrada ou houver erro, adiciona texto placeholder
                             PdfPCell errCell = new PdfPCell(new Paragraph("[Erro ao carregar imagem]"));
                             errCell.setBorder(Rectangle.NO_BORDER);
                             imageTable.addCell(errCell);
                         }
                     }
                     
-                    // Se o número de fotos for ímpar, adiciona uma célula vazia para completar a linha
                     if (diario.getFotos().size() % 2 != 0) {
                         PdfPCell emptyCell = new PdfPCell(new Paragraph(" "));
                         emptyCell.setBorder(Rectangle.NO_BORDER);
                         imageTable.addCell(emptyCell);
                     }
-                    
-                    document.add(imageTable);
+                    addContentToCard(fotosCard, imageTable);
                 } else {
-                    document.add(new Paragraph("Nenhuma foto anexada.", normalFont));
+                    addTextToCard(fotosCard, "Nenhuma foto anexada.", normalFont);
                 }
+                document.add(fotosCard);
             }
 
             document.close();
@@ -185,16 +210,55 @@ public class PdfGeneratorService {
         return out.toByteArray();
     }
 
-    private void addTableRow(PdfPTable table, String header, String value, Font boldFont, Font normalFont) {
+    private void addTableRowWithBorders(PdfPTable table, String header, String value, Font boldFont, Font normalFont) {
         PdfPCell headerCell = new PdfPCell(new Paragraph(header, boldFont));
-        headerCell.setBorder(Rectangle.NO_BORDER);
-        headerCell.setPadding(5);
+        headerCell.setPadding(6);
+        headerCell.setBackgroundColor(new BaseColor(243, 244, 246)); // light gray
         
         PdfPCell valueCell = new PdfPCell(new Paragraph(value, normalFont));
-        valueCell.setBorder(Rectangle.NO_BORDER);
-        valueCell.setPadding(5);
+        valueCell.setPadding(6);
         
         table.addCell(headerCell);
         table.addCell(valueCell);
+    }
+    
+    private void addTableRow(PdfPTable table, String header, String value, Font boldFont, Font normalFont) {
+        PdfPCell headerCell = new PdfPCell(new Paragraph(header, boldFont));
+        headerCell.setBorder(Rectangle.NO_BORDER);
+        headerCell.setPadding(4);
+        
+        PdfPCell valueCell = new PdfPCell(new Paragraph(value, normalFont));
+        valueCell.setBorder(Rectangle.NO_BORDER);
+        valueCell.setPadding(4);
+        
+        table.addCell(headerCell);
+        table.addCell(valueCell);
+    }
+
+    private PdfPTable createCardTable(String title, BaseColor headerBgColor, Font headerFont) {
+        PdfPTable card = new PdfPTable(1);
+        card.setWidthPercentage(100);
+        
+        PdfPCell headerCell = new PdfPCell(new Paragraph(title, headerFont));
+        headerCell.setBackgroundColor(headerBgColor);
+        headerCell.setPadding(8);
+        headerCell.setBorderColor(new BaseColor(200, 200, 200));
+        
+        card.addCell(headerCell);
+        return card;
+    }
+    
+    private void addContentToCard(PdfPTable card, PdfPTable content) {
+        PdfPCell contentCell = new PdfPCell(content);
+        contentCell.setPadding(10);
+        contentCell.setBorderColor(new BaseColor(200, 200, 200));
+        card.addCell(contentCell);
+    }
+    
+    private void addTextToCard(PdfPTable card, String text, Font font) {
+        PdfPCell contentCell = new PdfPCell(new Paragraph(text, font));
+        contentCell.setPadding(10);
+        contentCell.setBorderColor(new BaseColor(200, 200, 200));
+        card.addCell(contentCell);
     }
 }
