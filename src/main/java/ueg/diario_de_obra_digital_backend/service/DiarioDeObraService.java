@@ -73,6 +73,8 @@ public class DiarioDeObraService {
           "Já existe um diário para esta obra na data " + dto.getData() + ".");
     });
 
+    validateDateNotPast(dto.getData());
+
     // Valida campos obrigatórios
     if (!StringUtils.hasText(dto.getCondicaoClimatica())) {
       throw new IllegalArgumentException("O campo 'condição climática' é obrigatório.");
@@ -183,6 +185,7 @@ public class DiarioDeObraService {
               "Já existe um diário para esta obra na data " + dto.getData() + ".");
         });
       }
+      validateDateNotPast(dto.getData());
       diario.setData(dto.getData());
     }
     if (StringUtils.hasText(dto.getCondicaoClimatica())) {
@@ -386,6 +389,12 @@ public class DiarioDeObraService {
     if (diasDesde > 5) {
       throw new DiarioEditForbiddenEx(
           "Engenheiros só podem editar diários criados há no máximo 5 dias. Este diário foi criado há " + diasDesde + " dias.");
+    }
+  }
+
+  private void validateDateNotPast(LocalDate data) {
+    if (data != null && data.isBefore(LocalDate.now())) {
+      throw new IllegalArgumentException("A data do diário não pode ser no passado.");
     }
   }
 }

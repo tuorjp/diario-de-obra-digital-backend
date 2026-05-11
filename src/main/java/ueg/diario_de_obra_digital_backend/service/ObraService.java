@@ -21,6 +21,7 @@ import ueg.diario_de_obra_digital_backend.service.exception.DuplicateRoleAssignm
 import ueg.diario_de_obra_digital_backend.service.exception.ObraNotFoundException;
 import ueg.diario_de_obra_digital_backend.service.exception.UserNotFoundException;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +64,8 @@ public class ObraService {
         }
 
         applyFiscalAndEngenheiros(obra, dto.getFiscalId(), dto.getEngenheiroIds());
+
+        validateDates(obra.getDataInicio(), obra.getDataPrevistaFim());
 
         return new ObraResponseDTO(obraRepository.save(obra));
     }
@@ -116,6 +119,8 @@ public class ObraService {
         }
 
         applyFiscalAndEngenheiros(obra, dto.getFiscalId(), dto.getEngenheiroIds());
+
+        validateDates(obra.getDataInicio(), obra.getDataPrevistaFim());
 
         return new ObraResponseDTO(obraRepository.save(obra));
     }
@@ -247,6 +252,15 @@ public class ObraService {
 
         obra.setFiscal(fiscal);
         obra.setEngenheiros(engenheiros);
+    }
+
+    private void validateDates(LocalDate dataInicio, LocalDate dataPrevistaFim) {
+        if (dataInicio != null && dataPrevistaFim != null && dataInicio.isAfter(dataPrevistaFim)) {
+            throw new IllegalArgumentException("A data de início não pode ser posterior à data prevista de fim.");
+        }
+        if (dataInicio != null && dataInicio.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("A data de início não pode ser no passado.");
+        }
     }
 
     private void validateRequiredFields(String contratante, String contratada, String projeto) {
