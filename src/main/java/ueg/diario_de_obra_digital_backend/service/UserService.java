@@ -168,6 +168,9 @@ public class UserService {
             // 2. Alteração de Status (Enabled)
             // Usa Boolean wrapper no DTO para aceitar null e não sobrescrever erradamente
             if (dto.getEnabled() != null) {
+                if (existentUser.getRole() == UserRole.ADMIN && !dto.getEnabled()) {
+                    throw new IllegalArgumentException("O usuário admin não pode ser desativado.");
+                }
                 existentUser.setEnabled(dto.getEnabled());
             }
 
@@ -195,6 +198,9 @@ public class UserService {
 
     public void deleteUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new IllegalArgumentException("O usuário admin não pode ser desativado.");
+        }
         user.setEnabled(!user.isEnabled());
         userRepository.save(user);
     }
