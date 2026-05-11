@@ -381,6 +381,7 @@ public class DiarioDeObraService {
     return listaAtivos;
   }
 
+  @Transactional(readOnly = true)
   public byte[] printDiarios(List<Long> ids, User currentUser) {
       List<DiarioDeObra> diarios = diarioDeObraRepository.findAllById(ids);
       
@@ -414,6 +415,38 @@ public class DiarioDeObraService {
       }
       
       return pdfGeneratorService.generateDiariosPdf(diariosPermitidos);
+  }
+
+  @Transactional(readOnly = true)
+  public byte[] printDiariosByObra(Long obraId, User currentUser) {
+      Obra obra = findObraOrThrow(obraId);
+      
+      boolean temAcesso = false;
+      if (currentUser.getRole() == UserRole.ADMIN) {
+          temAcesso = true;
+      } else if (currentUser.getRole() == UserRole.GESTOR) {
+          if (obra.getCriador() != null && obra.getCriador().getId().equals(currentUser.getId())) {
+              temAcesso = true;
+          }
+      } else if (currentUser.getRole() == UserRole.FISCAL || currentUser.getRole() == UserRole.ENGENHEIRO) {
+          boolean isFiscal = obra.getFiscal() != null && obra.getFiscal().getId().equals(currentUser.getId());
+          boolean isEngenheiro = obra.getEngenheiros() != null && obra.getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
+          if (isFiscal || isEngenheiro) {
+              temAcesso = true;
+          }
+      }
+      
+      if (!temAcesso) {
+          throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado à obra");
+      }
+      
+      List<DiarioDeObra> diarios = obra.getDiarios().stream().filter(d -> !d.isDeletado()).collect(java.util.stream.Collectors.toList());
+      
+      if (diarios.isEmpty()) {
+          throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "A obra não possui diários ativos para impressão");
+      }
+      
+      return pdfGeneratorService.generateDiariosPdf(diarios);
   }
 
   public void logicDelete(Long id) {

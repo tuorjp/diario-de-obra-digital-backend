@@ -139,4 +139,17 @@ public class DiarioDeObraController {
             .contentType(MediaType.APPLICATION_PDF)
             .body(pdfBytes);
   }
+
+  /** GET /diario/obra/{obraId}/imprimir — Gerar PDF de todos os diários de uma obra */
+  @GetMapping("/obra/{obraId}/imprimir")
+  public ResponseEntity<byte[]> imprimirPorObra(
+          @PathVariable Long obraId,
+          @AuthenticationPrincipal User currentUser
+  ) {
+    byte[] pdfBytes = diarioDeObraService.printDiariosByObra(obraId, currentUser);
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"diarios_obra_" + obraId + ".pdf\"")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfBytes);
+  }
 }
