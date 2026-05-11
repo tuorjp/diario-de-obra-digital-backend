@@ -77,6 +77,100 @@ public class DatabaseSeeder {
                                 System.out.println("Admin inserido com sucesso.");
                         }
 
+                    // ---------------------------------------------------------
+                    // 2. SEED DOS DEMAIS USUÁRIOS (GESTOR, FISCAL, ENGENHEIRO, USER)
+                    // ---------------------------------------------------------
+
+                    // GESTOR
+                    if (userRepository.findUserByLogin("gestor@gmail.com").isEmpty()) {
+                        System.out.println("Iniciando Seeding do GESTOR...");
+                        User user = new User();
+                        user.setLogin("gestor@gmail.com");
+                        user.setPassword(passwordEncoder.encode("123456"));
+                        user.setRole(UserRole.GESTOR);
+                        user.setName("Ricardo Alves Souza");
+                        user.setCpf("123.456.789-00");
+                        user.setEnabled(true);
+                        user.setCreationDate(LocalDate.now());
+                        user.setPhone1("(62) 98888-1111");
+                        user.setAddress("Rua Principal");
+                        user.setAddressNumber("10");
+                        user.setZipCode("75000-000");
+                        user.setCity("Anápolis");
+                        user.setState("GO");
+
+                        userRepository.save(user);
+                        System.out.println("Gestor inserido com sucesso.");
+                    }
+
+                    // FISCAL
+                    if (userRepository.findUserByLogin("fiscal@gmail.com").isEmpty()) {
+                        System.out.println("Iniciando Seeding do FISCAL...");
+                        User user = new User();
+                        user.setLogin("fiscal@gmail.com");
+                        user.setPassword(passwordEncoder.encode("123456"));
+                        user.setRole(UserRole.FISCAL);
+                        user.setName("Marcos Paulo Ferreira");
+                        user.setCpf("234.567.890-11");
+                        user.setEnabled(true);
+                        user.setCreationDate(LocalDate.now());
+                        user.setPhone1("(62) 97777-2222");
+                        user.setAddress("Rua das Flores");
+                        user.setAddressNumber("100");
+                        user.setZipCode("75000-000");
+                        user.setCity("Anápolis");
+                        user.setState("GO");
+
+                        userRepository.save(user);
+                        System.out.println("Fiscal inserido com sucesso.");
+                    }
+
+                    // ENGENHEIRO
+                    if (userRepository.findUserByLogin("engenheiro@gmail.com").isEmpty()) {
+                        System.out.println("Iniciando Seeding do ENGENHEIRO...");
+                        User user = new User();
+                        user.setLogin("engenheiro@gmail.com");
+                        user.setPassword(passwordEncoder.encode("123456"));
+                        user.setRole(UserRole.ENGENHEIRO);
+                        user.setName("Roberto Silva Santos");
+                        user.setCpf("345.678.901-22");
+                        user.setEnabled(true);
+                        user.setCrea("9876543");
+                        user.setCreaUf("GO");
+                        user.setCreationDate(LocalDate.now());
+                        user.setPhone1("(62) 96666-3333");
+                        user.setAddress("Alameda das Palmeiras");
+                        user.setAddressNumber("500");
+                        user.setZipCode("75000-000");
+                        user.setCity("Anápolis");
+                        user.setState("GO");
+
+                        userRepository.save(user);
+                        System.out.println("Engenheiro inserido com sucesso.");
+                    }
+
+                    // USER (Comum)
+                    if (userRepository.findUserByLogin("user@gmail.com").isEmpty()) {
+                        System.out.println("Iniciando Seeding do USER...");
+                        User user = new User();
+                        user.setLogin("user@gmail.com");
+                        user.setPassword(passwordEncoder.encode("123456"));
+                        user.setRole(UserRole.USER);
+                        user.setName("Ana Beatriz Lima");
+                        user.setCpf("456.789.012-33");
+                        user.setEnabled(true);
+                        user.setCreationDate(LocalDate.now());
+                        user.setPhone1("(62) 95555-4444");
+                        user.setAddress("Rua Comercial");
+                        user.setAddressNumber("15");
+                        user.setZipCode("75000-000");
+                        user.setCity("Anápolis");
+                        user.setState("GO");
+
+                        userRepository.save(user);
+                        System.out.println("Usuário comum inserido com sucesso.");
+                    }
+
                         // ---------------------------------------------------------
                         // 2. SEED DOS 30 NOVOS USUÁRIOS (ALEATÓRIOS)
                         // ---------------------------------------------------------
