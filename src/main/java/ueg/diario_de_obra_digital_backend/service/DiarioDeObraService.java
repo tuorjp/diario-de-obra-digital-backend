@@ -42,6 +42,7 @@ public class DiarioDeObraService {
   private final ServicoRepository servicoRepository;
   private final EquipamentoRepository equipamentoRepository;
   private final FileStorageService fileStorageService;
+  private final PdfGeneratorService pdfGeneratorService;
   private final EntityManager entityManager;
 
   // ─── CREATE ──────────────────────────────────────────────────────────────────
@@ -378,6 +379,41 @@ public class DiarioDeObraService {
     List<DiarioDeObra> listaAtivos = diarioDeObraRepository.findAll();
     session.disableFilter("deletedDiarioFilter");
     return listaAtivos;
+  }
+
+  public byte[] printDiarios(List<Long> ids, User currentUser) {
+      List<DiarioDeObra> diarios = diarioDeObraRepository.findAllById(ids);
+      
+      // Aplicar regras de visibilidade
+      List<DiarioDeObra> diariosPermitidos = new ArrayList<>();
+      for (DiarioDeObra diario : diarios) {
+          Obra obra = diario.getObra();
+          boolean temAcesso = false;
+          
+          if (currentUser.getRole() == UserRole.ADMIN) {
+              temAcesso = true;
+          } else if (currentUser.getRole() == UserRole.GESTOR) {
+              if (obra.getCriador() != null && obra.getCriador().getId().equals(currentUser.getId())) {
+                  temAcesso = true;
+              }
+          } else if (currentUser.getRole() == UserRole.FISCAL || currentUser.getRole() == UserRole.ENGENHEIRO) {
+              boolean isFiscal = obra.getFiscal() != null && obra.getFiscal().getId().equals(currentUser.getId());
+              boolean isEngenheiro = obra.getEngenheiros() != null && obra.getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
+              if (isFiscal || isEngenheiro) {
+                  temAcesso = true;
+              }
+          }
+          
+          if (temAcesso) {
+              diariosPermitidos.add(diario);
+          }
+      }
+      
+      if (diariosPermitidos.isEmpty()) {
+          throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Nenhum diário acessível para impressão");
+      }
+      
+      return pdfGeneratorService.generateDiariosPdf(diariosPermitidos);
   }
 
   public void logicDelete(Long id) {

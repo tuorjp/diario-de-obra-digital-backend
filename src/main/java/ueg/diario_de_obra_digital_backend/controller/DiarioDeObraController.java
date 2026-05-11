@@ -126,4 +126,17 @@ public class DiarioDeObraController {
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
             .body(resource);
   }
+
+  /** GET /diario/imprimir — Gerar PDF de um ou mais diários */
+  @GetMapping("/imprimir")
+  public ResponseEntity<byte[]> imprimir(
+          @RequestParam List<Long> ids,
+          @AuthenticationPrincipal User currentUser
+  ) {
+    byte[] pdfBytes = diarioDeObraService.printDiarios(ids, currentUser);
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"diarios_de_obra.pdf\"")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfBytes);
+  }
 }
