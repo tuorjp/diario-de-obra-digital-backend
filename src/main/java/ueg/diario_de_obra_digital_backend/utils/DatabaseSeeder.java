@@ -127,26 +127,49 @@ public class DatabaseSeeder {
 
                     // ENGENHEIRO
                     if (userRepository.findUserByLogin("engenheiro@gmail.com").isEmpty()) {
-                        System.out.println("Iniciando Seeding do ENGENHEIRO...");
-                        User user = new User();
-                        user.setLogin("engenheiro@gmail.com");
-                        user.setPassword(passwordEncoder.encode("123456"));
-                        user.setRole(UserRole.ENGENHEIRO);
-                        user.setName("Roberto Silva Santos");
-                        user.setCpf("345.678.901-22");
-                        user.setEnabled(true);
-                        user.setCrea("9876543");
-                        user.setCreaUf("GO");
-                        user.setCreationDate(LocalDate.now());
-                        user.setPhone1("(62) 96666-3333");
-                        user.setAddress("Alameda das Palmeiras");
-                        user.setAddressNumber("500");
-                        user.setZipCode("75000-000");
-                        user.setCity("Anápolis");
-                        user.setState("GO");
+                        System.out.println("Iniciando Seeding dos Engenheiros...");
 
-                        userRepository.save(user);
-                        System.out.println("Engenheiro inserido com sucesso.");
+                        // Primeiro Engenheiro
+                        User eng1 = new User();
+                        eng1.setLogin("engenheiro@gmail.com");
+                        eng1.setPassword(passwordEncoder.encode("123456"));
+                        eng1.setRole(UserRole.ENGENHEIRO);
+                        eng1.setName("Roberto Silva Santos Engenheiro");
+                        eng1.setCpf("345.678.901-22");
+                        eng1.setEnabled(true);
+                        eng1.setCrea("9876543");
+                        eng1.setCreaUf("GO");
+                        eng1.setCreationDate(LocalDate.now());
+                        eng1.setPhone1("(62) 96666-3333");
+                        eng1.setAddress("Alameda das Palmeiras");
+                        eng1.setAddressNumber("500");
+                        eng1.setZipCode("75000-000");
+                        eng1.setCity("Anápolis");
+                        eng1.setState("GO");
+                        userRepository.save(eng1);
+
+                        // Segundo Engenheiro - Nova Instância
+                        if (userRepository.findUserByLogin("engenheiro2@gmail.com").isEmpty()) {
+                            User eng2 = new User();
+                            eng2.setLogin("engenheiro2@gmail.com");
+                            eng2.setPassword(passwordEncoder.encode("123456"));
+                            eng2.setRole(UserRole.ENGENHEIRO);
+                            eng2.setName("Ricardo dos Santos Engenheiro");
+                            eng2.setCpf("348.678.901-22");
+                            eng2.setEnabled(true);
+                            eng2.setCrea("9856544");
+                            eng2.setCreaUf("SP");
+                            eng2.setCreationDate(LocalDate.now());
+                            eng2.setPhone1("(62) 96666-4444");
+                            eng2.setAddress("Alameda 5");
+                            eng2.setAddressNumber("501");
+                            eng2.setZipCode("75000-020");
+                            eng2.setCity("Goiânia");
+                            eng2.setState("GO");
+                            userRepository.save(eng2);
+                        }
+
+                        System.out.println("Engenheiros processados com sucesso.");
                     }
 
                     // USER (Comum)
@@ -156,7 +179,7 @@ public class DatabaseSeeder {
                         user.setLogin("user@gmail.com");
                         user.setPassword(passwordEncoder.encode("123456"));
                         user.setRole(UserRole.USER);
-                        user.setName("Ana Beatriz Lima");
+                        user.setName("Ana Beatriz Lima User");
                         user.setCpf("456.789.012-33");
                         user.setEnabled(true);
                         user.setCreationDate(LocalDate.now());
