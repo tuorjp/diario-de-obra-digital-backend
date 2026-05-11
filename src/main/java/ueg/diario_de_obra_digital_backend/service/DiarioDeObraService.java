@@ -321,13 +321,36 @@ public class DiarioDeObraService {
     return new DiarioResponseDto(diario);
   }
 
-  public Page<DiarioResponseDto> listByObraId(Long obraId, Pageable pageable) {
+  public Page<DiarioResponseDto> listByObraId(Long obraId, Pageable pageable, User currentUser) {
+    Obra obra = findObraOrThrow(obraId);
+
+    if (currentUser.getRole() == UserRole.GESTOR) {
+        if (obra.getCriador() != null && !currentUser.getId().equals(obra.getCriador().getId())) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
+        }
+    } else if (currentUser.getRole() == UserRole.FISCAL || currentUser.getRole() == UserRole.ENGENHEIRO) {
+        boolean isFiscal = obra.getFiscal() != null && obra.getFiscal().getId().equals(currentUser.getId());
+        boolean isEngenheiro = obra.getEngenheiros() != null && obra.getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
+        if (!isFiscal && !isEngenheiro) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
+        }
+    }
+
     Specification<DiarioDeObra> spec = isNotDeleted().and(obraIdSelected(obraId));
     return diarioDeObraRepository.findAll(spec, pageable).map(DiarioResponseDto::new);
   }
 
-  public Page<DiarioResponseDto> list(String obraNome, LocalDate data, String autorNome, Pageable pageable) {
+  public Page<DiarioResponseDto> list(String obraNome, LocalDate data, String autorNome, Pageable pageable, User currentUser) {
     Specification<DiarioDeObra> spec = isNotDeleted();
+
+    if (currentUser.getRole() == UserRole.GESTOR) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("obra").get("criador"), currentUser));
+    } else if (currentUser.getRole() == UserRole.FISCAL || currentUser.getRole() == UserRole.ENGENHEIRO) {
+      spec = spec.and((root, query, cb) -> cb.or(
+          cb.equal(root.get("obra").get("fiscal"), currentUser),
+          cb.isMember(currentUser, root.get("obra").get("engenheiros"))
+      ));
+    }
 
     if (StringUtils.hasText(obraNome)) {
       spec = spec.and(obraNomeSelected(obraNome));

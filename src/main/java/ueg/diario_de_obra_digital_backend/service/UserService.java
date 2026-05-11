@@ -121,6 +121,11 @@ public class UserService {
         return userRepository.findAll().stream().map(UserProfileDTO::new).collect(Collectors.toList());
     }
 
+    public List<UserProfileDTO> getFiscaisEEngenheiros() {
+        return userRepository.findByRoleInAndEnabledTrue(List.of(UserRole.FISCAL, UserRole.ENGENHEIRO))
+                .stream().map(UserProfileDTO::new).collect(Collectors.toList());
+    }
+
     public void editUser(EditUserDTO dto, User currentUser) {
         User existentUser = userRepository.findById(dto.getId())
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));

@@ -20,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     User findByCrea(String crea);
 
     List<User> findAllByRole(UserRole role);
+    List<User> findByRoleInAndEnabledTrue(List<UserRole> roles);
 }

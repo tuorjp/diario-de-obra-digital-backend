@@ -54,6 +54,9 @@ public class SecurityConfigurations {
 
                         // Rotas de listagem geral também restritas a ADMIN
                         .requestMatchers(HttpMethod.GET, "/user/all").hasRole("ADMIN")
+                        
+                        // Busca de fiscais e engenheiros
+                        .requestMatchers(HttpMethod.GET, "/user/fiscais-e-engenheiros").hasAnyRole("ADMIN", "GESTOR")
 
                         // Delete restrito a ADMIN
                         .requestMatchers(HttpMethod.DELETE, "/user/delete/**").hasRole("ADMIN")

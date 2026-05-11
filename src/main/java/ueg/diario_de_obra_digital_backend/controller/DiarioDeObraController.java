@@ -38,9 +38,10 @@ public class DiarioDeObraController {
           @RequestParam(required = false) String obra,
           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
           @RequestParam(required = false) String autor,
-          Pageable pageable
+          Pageable pageable,
+          @AuthenticationPrincipal User currentUser
   ) {
-    return ResponseEntity.ok(diarioDeObraService.list(obra, data, autor, pageable));
+    return ResponseEntity.ok(diarioDeObraService.list(obra, data, autor, pageable, currentUser));
   }
 
   /** POST /diario/{obraId} — Criar novo diário (ENGENHEIRO, ADMIN) */
@@ -111,9 +112,10 @@ public class DiarioDeObraController {
   @GetMapping("/obra/{obraId}")
   public ResponseEntity<Page<DiarioResponseDto>> listByObra(
           @PathVariable Long obraId,
-          @PageableDefault(size = 10) Pageable pageable
+          @PageableDefault(size = 10) Pageable pageable,
+          @AuthenticationPrincipal User currentUser
   ) {
-    return ResponseEntity.ok(diarioDeObraService.listByObraId(obraId, pageable));
+    return ResponseEntity.ok(diarioDeObraService.listByObraId(obraId, pageable, currentUser));
   }
 
   /** GET /diario/fotos/{filename:.+} — Servir imagem armazenada */

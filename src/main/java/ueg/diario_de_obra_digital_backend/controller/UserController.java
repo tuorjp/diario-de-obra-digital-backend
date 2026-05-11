@@ -81,6 +81,11 @@ public class UserController {
         return ResponseEntity.ok(userService.findAll());
     }
 
+    @GetMapping("/fiscais-e-engenheiros")
+    public ResponseEntity<List<UserProfileDTO>> listFiscaisEEngenheiros() {
+        return ResponseEntity.ok(userService.getFiscaisEEngenheiros());
+    }
+
     @PutMapping("edit")
     public ResponseEntity<String> edit(@RequestBody EditUserDTO dto, @AuthenticationPrincipal User currentUser) {
         // Passamos o currentUser para validar as permissões de ADMIN no Service
