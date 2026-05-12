@@ -52,16 +52,32 @@ public class FileStorageService {
 
   public String storeFileWithHash(MultipartFile file) {
     try {
-      String hash = calculateHash(file);
       String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
-      ext = (ext != null && !ext.isEmpty()) ? "." + ext : "";
-      String fileName = hash + ext;
+      if (ext != null) ext = ext.toLowerCase();
+
+      byte[] finalBytes = file.getBytes();
+
+      if ("webp".equals(ext)) {
+        try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(finalBytes)) {
+          java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(bais);
+          if (image != null) {
+            try (java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {
+              javax.imageio.ImageIO.write(image, "png", baos);
+              finalBytes = baos.toByteArray();
+              ext = "png";
+            }
+          }
+        } catch (Exception e) {
+          System.err.println("Aviso: Falha ao converter WebP para PNG, mantendo original. " + e.getMessage());
+        }
+      }
+
+      String hash = calculateHash(finalBytes);
+      String fileName = hash + (ext != null && !ext.isEmpty() ? "." + ext : "");
 
       Path targetLocation = this.fileStorageLocation.resolve(fileName);
       if (!Files.exists(targetLocation)) {
-        try (InputStream inputStream = file.getInputStream()) {
-          Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
-        }
+        Files.write(targetLocation, finalBytes);
       }
       return fileName;
     } catch (Exception e) {
@@ -69,9 +85,9 @@ public class FileStorageService {
     }
   }
 
-  public String calculateHash(MultipartFile file) throws Exception {
+  public String calculateHash(byte[] fileBytes) throws Exception {
     java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-    byte[] hashBytes = digest.digest(file.getBytes());
+    byte[] hashBytes = digest.digest(fileBytes);
     StringBuilder hexString = new StringBuilder();
     for (byte b : hashBytes) {
       String hex = Integer.toHexString(0xff & b);
