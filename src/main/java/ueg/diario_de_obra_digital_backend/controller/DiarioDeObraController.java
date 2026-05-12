@@ -120,9 +120,26 @@ public class DiarioDeObraController {
 
   /** GET /diario/fotos/{filename:.+} — Servir imagem armazenada */
   @GetMapping("/fotos/{filename:.+}")
-  public ResponseEntity<Resource> servirFoto(@PathVariable String filename) {
+  public ResponseEntity<Resource> servirFoto(@PathVariable String filename, jakarta.servlet.http.HttpServletRequest request) {
     Resource resource = fileStorageService.loadFileAsResource(filename);
+
+    String contentType = null;
+    try {
+        contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+    } catch (Exception ex) {
+        // Ignorar
+    }
+
+    if (contentType == null) {
+        if (filename.toLowerCase().endsWith(".webp")) {
+            contentType = "image/webp";
+        } else {
+            contentType = "application/octet-stream";
+        }
+    }
+
     return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(contentType))
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
             .body(resource);
   }

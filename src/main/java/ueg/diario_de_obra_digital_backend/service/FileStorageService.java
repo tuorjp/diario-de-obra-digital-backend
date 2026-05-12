@@ -50,14 +50,35 @@ public class FileStorageService {
     }
   }
 
-  public String storeFileAsName(MultipartFile file, String fixedFileName) {
-    try (InputStream inputStream = file.getInputStream()) {
-      Path targetLocation = this.fileStorageLocation.resolve(fixedFileName);
-      Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
-      return fixedFileName;
-    } catch (IOException e) {
-      throw new FileStorageCreationException("Não foi possível salvar o arquivo com o nome: " + fixedFileName);
+  public String storeFileWithHash(MultipartFile file) {
+    try {
+      String hash = calculateHash(file);
+      String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
+      ext = (ext != null && !ext.isEmpty()) ? "." + ext : "";
+      String fileName = hash + ext;
+
+      Path targetLocation = this.fileStorageLocation.resolve(fileName);
+      if (!Files.exists(targetLocation)) {
+        try (InputStream inputStream = file.getInputStream()) {
+          Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+        }
+      }
+      return fileName;
+    } catch (Exception e) {
+      throw new FileStorageCreationException("Não foi possível salvar o arquivo");
     }
+  }
+
+  public String calculateHash(MultipartFile file) throws Exception {
+    java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+    byte[] hashBytes = digest.digest(file.getBytes());
+    StringBuilder hexString = new StringBuilder();
+    for (byte b : hashBytes) {
+      String hex = Integer.toHexString(0xff & b);
+      if (hex.length() == 1) hexString.append('0');
+      hexString.append(hex);
+    }
+    return hexString.toString();
   }
 
   // Novo método para facilitar seeding a partir de InputStream (ex: resources)

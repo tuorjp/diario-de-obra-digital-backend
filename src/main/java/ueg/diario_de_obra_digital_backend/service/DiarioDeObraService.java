@@ -152,16 +152,13 @@ public class DiarioDeObraService {
 
     diario = diarioDeObraRepository.save(diario);
 
-    // ID do diário gerado, gerar nome das fotos
-    int maxId = 1;
-    for (MultipartFile foto : fotos) {
-      if (foto != null && !foto.isEmpty()) {
-        String ext = StringUtils.getFilenameExtension(foto.getOriginalFilename());
-        ext = (ext != null && !ext.isEmpty()) ? "." + ext : "";
-        String fileName = diario.getObra().getId() + "_" + diario.getId() + "_" + maxId + ext;
-        fileStorageService.storeFileAsName(foto, fileName);
-        diario.getFotos().add(fileName);
-        maxId++;
+    // Armazenar novas fotos com base no hash
+    if (fotos != null) {
+      for (MultipartFile foto : fotos) {
+        if (foto != null && !foto.isEmpty()) {
+          String fileName = fileStorageService.storeFileWithHash(foto);
+          diario.getFotos().add(fileName);
+        }
       }
     }
 
@@ -249,28 +246,39 @@ public class DiarioDeObraService {
       }
     }
 
-    // Remove as fotos existentes do Storage para regerar limpo
-    for (String oldFoto : diario.getFotos()) {
-        fileStorageService.deleteFile(oldFoto);
-    }
-    diario.getFotos().clear();
-
-    // Adiciona as fotos unificadas (que podem ser antigas recarregadas ou as novas criadas localmente)
+    // Verifica as novas fotos e salva se não existirem
+    java.util.List<String> incomingHashes = new java.util.ArrayList<>();
     if (novasFotos != null) {
-      int idx = 1;
       for (MultipartFile foto : novasFotos) {
         if (foto != null && !foto.isEmpty()) {
-          String ext = StringUtils.getFilenameExtension(foto.getOriginalFilename());
-          ext = (ext != null && !ext.isEmpty()) ? "." + ext : "";
-          String fileName = diario.getObra().getId() + "_" + diario.getId() + "_" + idx + ext;
-          fileStorageService.storeFileAsName(foto, fileName);
-          diario.getFotos().add(fileName);
-          idx++;
+          String fileName = fileStorageService.storeFileWithHash(foto);
+          incomingHashes.add(fileName);
         }
       }
     }
 
-    return new DiarioResponseDto(diarioDeObraRepository.save(diario));
+    // Compara as antigas com as que chegaram para identificar o que deve ser removido
+    java.util.List<String> toRemove = new java.util.ArrayList<>();
+    for (String oldFoto : diario.getFotos()) {
+      if (!incomingHashes.contains(oldFoto)) {
+        toRemove.add(oldFoto);
+      }
+    }
+
+    // Limpa a lista do diário e insere as que chegaram
+    diario.getFotos().clear();
+    diario.getFotos().addAll(incomingHashes);
+
+    // Salva o diário
+    diario = diarioDeObraRepository.save(diario);
+
+    // Apaga do disco as fotos que não fazem mais parte deste diário
+    for (String fotoRemover : toRemove) {
+        // Deleta do disco fisicamente (cuidado se a imagem for compartilhada)
+        fileStorageService.deleteFile(fotoRemover);
+    }
+
+    return new DiarioResponseDto(diario);
   }
 
   // ─── APROVAR / REPROVAR ──────────────────────────────────────────────────────
