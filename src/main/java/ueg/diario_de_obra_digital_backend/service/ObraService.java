@@ -258,9 +258,9 @@ public class ObraService {
         if (dataInicio != null && dataPrevistaFim != null && dataInicio.isAfter(dataPrevistaFim)) {
             throw new IllegalArgumentException("A data de início não pode ser posterior à data prevista de fim.");
         }
-        if (dataInicio != null && dataInicio.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("A data de início não pode ser no passado.");
-        }
+        // Nota: não validamos se dataInicio está no passado, pois obras já em andamento
+        // podem ser cadastradas retroativamente, e fusos horários negativos (ex: GMT-3)
+        // causariam rejeição indevida após as 21h00 do horário local.
     }
 
     private void validateRequiredFields(String contratante, String contratada, String projeto) {

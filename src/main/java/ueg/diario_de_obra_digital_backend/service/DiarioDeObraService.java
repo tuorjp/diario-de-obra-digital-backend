@@ -74,7 +74,11 @@ public class DiarioDeObraService {
           "Já existe um diário para esta obra na data " + dto.getData() + ".");
     });
 
-    validateDateNotPast(dto.getData());
+    // RN: a data do diário não pode ser anterior à data de início da obra
+    if (obra.getDataInicio() != null && dto.getData().isBefore(obra.getDataInicio())) {
+      throw new IllegalArgumentException(
+          "A data do diário (" + dto.getData() + ") não pode ser anterior à data de início da obra (" + obra.getDataInicio() + ").");
+    }
 
     // Valida campos obrigatórios
     if (!StringUtils.hasText(dto.getCondicaoClimatica())) {
@@ -176,14 +180,19 @@ public class DiarioDeObraService {
 
     // Atualiza campos simples se fornecidos
     if (dto.getData() != null) {
-      // Verifica unicidade nova data (ignora se data não mudou)
+      // Verifica unicidade e valida data somente se houve mudança de data
       if (!dto.getData().equals(diario.getData())) {
         diarioDeObraRepository.findByObraAndData(diario.getObra(), dto.getData()).ifPresent(d -> {
           throw new DiarioDuplicadoEx(
               "Já existe um diário para esta obra na data " + dto.getData() + ".");
         });
+        // RN: a data do diário não pode ser anterior à data de início da obra
+        Obra obra = diario.getObra();
+        if (obra.getDataInicio() != null && dto.getData().isBefore(obra.getDataInicio())) {
+          throw new IllegalArgumentException(
+              "A data do diário (" + dto.getData() + ") não pode ser anterior à data de início da obra (" + obra.getDataInicio() + ").");
+        }
       }
-      validateDateNotPast(dto.getData());
       diario.setData(dto.getData());
     }
     if (StringUtils.hasText(dto.getCondicaoClimatica())) {
@@ -481,14 +490,16 @@ public class DiarioDeObraService {
   private void checkEditPermission(DiarioDeObra diario, User currentUser) {
     if (currentUser.getRole() == UserRole.ADMIN) return;
 
-    if (!diario.getAutor().getId().equals(currentUser.getId())) {
-      throw new DiarioEditForbiddenEx("Apenas o autor do diário ou um Administrador pode editá-lo.");
+    boolean isLinkedEngineer = diario.getObra().getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
+
+    if (!diario.getAutor().getId().equals(currentUser.getId()) && !isLinkedEngineer) {
+      throw new DiarioEditForbiddenEx("Apenas o autor do diário, um engenheiro vinculado à obra ou um Administrador pode editá-lo.");
     }
 
     long diasDesde = java.time.temporal.ChronoUnit.DAYS.between(diario.getData(), LocalDate.now());
     if (diasDesde > 5) {
       throw new DiarioEditForbiddenEx(
-          "Engenheiros só podem editar diários criados há no máximo 5 dias. Este diário foi criado há " + diasDesde + " dias.");
+          "Engenheiros só podem editar diários cuja data seja de no máximo 5 dias atrás. A data deste diário é " + diario.getData() + " (" + diasDesde + " dias atrás).");
     }
   }
 
