@@ -64,6 +64,7 @@ public class ObraService {
         }
 
         applyFiscalAndEngenheiros(obra, dto.getFiscalId(), dto.getEngenheiroIds());
+        applyCliente(obra, dto.getClienteId());
 
         validateDates(obra.getDataInicio(), obra.getDataPrevistaFim());
 
@@ -119,6 +120,7 @@ public class ObraService {
         }
 
         applyFiscalAndEngenheiros(obra, dto.getFiscalId(), dto.getEngenheiroIds());
+        applyCliente(obra, dto.getClienteId());
 
         validateDates(obra.getDataInicio(), obra.getDataPrevistaFim());
 
@@ -143,11 +145,16 @@ public class ObraService {
             if (obra.getCriador() != null && !currentUser.getId().equals(obra.getCriador().getId())) {
                 throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
             }
-        } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.FISCAL || 
+        } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.FISCAL ||
                    currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.ENGENHEIRO) {
             boolean isFiscal = obra.getFiscal() != null && obra.getFiscal().getId().equals(currentUser.getId());
             boolean isEngenheiro = obra.getEngenheiros() != null && obra.getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
             if (!isFiscal && !isEngenheiro) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
+            }
+        } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.USER) {
+            boolean isCliente = obra.getCliente() != null && obra.getCliente().getId().equals(currentUser.getId());
+            if (!isCliente) {
                 throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
             }
         }
@@ -167,6 +174,8 @@ public class ObraService {
                         cb.equal(root.get("fiscal"), currentUser),
                         cb.isMember(currentUser, root.get("engenheiros"))
                 ));
+            } else if (currentUser.getRole() == ueg.diario_de_obra_digital_backend.enums.UserRole.USER) {
+                predicates.add(cb.equal(root.get("cliente"), currentUser));
             }
 
             if (statuses != null && !statuses.isEmpty()) {
@@ -252,6 +261,25 @@ public class ObraService {
 
         obra.setFiscal(fiscal);
         obra.setEngenheiros(engenheiros);
+    }
+
+    /**
+     * Resolve e atribui o cliente (role USER) à obra, se informado.
+     */
+    private void applyCliente(Obra obra, Long clienteId) {
+        if (clienteId == null) {
+            obra.setCliente(null);
+            return;
+        }
+        User cliente = userRepository.findById(clienteId)
+                .orElseThrow(() -> new UserNotFoundException("Cliente não encontrado com id: " + clienteId));
+        if (!cliente.isEnabled()) {
+            throw new IllegalArgumentException("Não é possível atribuir um usuário inativo como cliente");
+        }
+        if (cliente.getRole() != ueg.diario_de_obra_digital_backend.enums.UserRole.USER) {
+            throw new IllegalArgumentException("O cliente deve ter o perfil USER");
+        }
+        obra.setCliente(cliente);
     }
 
     private void validateDates(LocalDate dataInicio, LocalDate dataPrevistaFim) {

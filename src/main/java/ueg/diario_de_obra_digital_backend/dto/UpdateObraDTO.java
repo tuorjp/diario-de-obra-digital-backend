@@ -16,5 +16,6 @@ public class UpdateObraDTO {
     private String observacao;
     private Long fiscalId;
     private Set<Long> engenheiroIds;
+    private Long clienteId;
     private EnderecoObraDTO endereco;
 }

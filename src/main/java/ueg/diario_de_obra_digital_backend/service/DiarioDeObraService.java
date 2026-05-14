@@ -352,6 +352,11 @@ public class DiarioDeObraService {
         if (!isFiscal && !isEngenheiro) {
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
         }
+    } else if (currentUser.getRole() == UserRole.USER) {
+        boolean isCliente = obra.getCliente() != null && obra.getCliente().getId().equals(currentUser.getId());
+        if (!isCliente) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Acesso negado");
+        }
     }
 
     Specification<DiarioDeObra> spec = isNotDeleted().and(obraIdSelected(obraId));
@@ -368,6 +373,8 @@ public class DiarioDeObraService {
           cb.equal(root.get("obra").get("fiscal"), currentUser),
           cb.isMember(currentUser, root.get("obra").get("engenheiros"))
       ));
+    } else if (currentUser.getRole() == UserRole.USER) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("obra").get("cliente"), currentUser));
     }
 
     if (StringUtils.hasText(obraNome)) {
@@ -420,6 +427,10 @@ public class DiarioDeObraService {
               if (isFiscal || isEngenheiro) {
                   temAcesso = true;
               }
+          } else if (currentUser.getRole() == UserRole.USER) {
+              if (obra.getCliente() != null && obra.getCliente().getId().equals(currentUser.getId())) {
+                  temAcesso = true;
+              }
           }
           
           if (temAcesso) {
@@ -449,6 +460,10 @@ public class DiarioDeObraService {
           boolean isFiscal = obra.getFiscal() != null && obra.getFiscal().getId().equals(currentUser.getId());
           boolean isEngenheiro = obra.getEngenheiros() != null && obra.getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
           if (isFiscal || isEngenheiro) {
+              temAcesso = true;
+          }
+      } else if (currentUser.getRole() == UserRole.USER) {
+          if (obra.getCliente() != null && obra.getCliente().getId().equals(currentUser.getId())) {
               temAcesso = true;
           }
       }

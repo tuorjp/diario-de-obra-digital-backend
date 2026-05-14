@@ -61,6 +61,10 @@ public class Obra implements Serializable {
   @JoinColumn(name = "criador_id")
   private User criador;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "cliente_id")
+  private User cliente;
+
   @OneToOne(mappedBy = "obra", cascade = CascadeType.ALL, orphanRemoval = true)
   private EnderecoObra endereco;
 }
