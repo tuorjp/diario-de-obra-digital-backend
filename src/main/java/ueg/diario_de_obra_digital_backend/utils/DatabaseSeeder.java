@@ -49,7 +49,7 @@ public class DatabaseSeeder {
                         // ---------------------------------------------------------
                         // 1. SEED DO ADMIN
                         // ---------------------------------------------------------
-                        if (userRepository.findUserByLogin("admin@gmail.com").isEmpty()) {
+                        if (userRepository.findUserByLogin("admin@gmail.com").isEmpty() && userRepository.findUserByCpf("000.000.000-00").isEmpty()) {
                                 System.out.println("Iniciando Seeding do ADMIN...");
                                 User user = new User();
 
@@ -82,7 +82,7 @@ public class DatabaseSeeder {
                         // ---------------------------------------------------------
 
                         // GESTOR
-                        if (userRepository.findUserByLogin("gestor@gmail.com").isEmpty()) {
+                        if (userRepository.findUserByLogin("gestor@gmail.com").isEmpty() && userRepository.findUserByCpf("123.456.789-00").isEmpty()) {
                             System.out.println("Iniciando Seeding do GESTOR...");
                             User user = new User();
                             user.setLogin("gestor@gmail.com");
@@ -104,7 +104,7 @@ public class DatabaseSeeder {
                         }
 
                         // FISCAL
-                        if (userRepository.findUserByLogin("fiscal@gmail.com").isEmpty()) {
+                        if (userRepository.findUserByLogin("fiscal@gmail.com").isEmpty() && userRepository.findUserByCpf("234.567.890-11").isEmpty()) {
                             System.out.println("Iniciando Seeding do FISCAL...");
                             User user = new User();
                             user.setLogin("fiscal@gmail.com");
@@ -126,7 +126,7 @@ public class DatabaseSeeder {
                         }
 
                         // ENGENHEIROS
-                        if (userRepository.findUserByLogin("engenheiro1@gmail.com").isEmpty()) {
+                        if (userRepository.findUserByLogin("engenheiro1@gmail.com").isEmpty() && userRepository.findUserByCpf("345.678.901-22").isEmpty()) {
                             System.out.println("Iniciando Seeding dos Engenheiros...");
 
                             // Primeiro Engenheiro
@@ -149,7 +149,7 @@ public class DatabaseSeeder {
                             userRepository.save(eng1);
                         }
                         
-                        if (userRepository.findUserByLogin("engenheiro2@gmail.com").isEmpty()) {
+                        if (userRepository.findUserByLogin("engenheiro2@gmail.com").isEmpty() && userRepository.findUserByCpf("348.678.901-22").isEmpty()) {
                             // Segundo Engenheiro
                             User eng2 = new User();
                             eng2.setLogin("engenheiro2@gmail.com");

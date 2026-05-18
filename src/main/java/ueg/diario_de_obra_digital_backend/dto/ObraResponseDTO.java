@@ -22,6 +22,7 @@ public class ObraResponseDTO {
     private UserProfileDTO fiscal;
     private Set<UserProfileDTO> engenheiros;
     private UserProfileDTO criador;
+    private UserProfileDTO cliente;
     private EnderecoObraDTO endereco;
 
     public ObraResponseDTO(Obra obra) {
@@ -40,6 +41,7 @@ public class ObraResponseDTO {
                 .map(UserProfileDTO::new)
                 .collect(Collectors.toSet());
         this.criador = obra.getCriador() != null ? new UserProfileDTO(obra.getCriador()) : null;
+        this.cliente = obra.getCliente() != null ? new UserProfileDTO(obra.getCliente()) : null;
         this.endereco = obra.getEndereco() != null ? new EnderecoObraDTO(obra.getEndereco()) : null;
     }
 }

@@ -6,6 +6,7 @@ import ueg.diario_de_obra_digital_backend.model.DiarioDeObra;
 import ueg.diario_de_obra_digital_backend.model.DiarioEquipamento;
 import ueg.diario_de_obra_digital_backend.model.DiarioMaoDeObra;
 import ueg.diario_de_obra_digital_backend.model.DiarioServico;
+import ueg.diario_de_obra_digital_backend.model.User;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -42,6 +43,7 @@ public class DiarioResponseDto {
   private final Long validadorId;
   private final String validadorNome;
   private final String comentarioValidacao;
+  private final List<Long> engenheiroIds;
 
   public DiarioResponseDto(DiarioDeObra d) {
     this.id = d.getId();
@@ -63,6 +65,9 @@ public class DiarioResponseDto {
     this.maoDeObra = mapMaoDeObra(d.getMaoDeObra());
     this.servicos = mapServicos(d.getServicosExecutados());
     this.equipamentos = mapEquipamentos(d.getEquipamentos());
+    this.engenheiroIds = d.getObra().getEngenheiros().stream()
+            .map(User::getId)
+            .collect(Collectors.toList());
   }
 
   private List<OcorrenciaResponseDto> mapOcorrencias(List<ueg.diario_de_obra_digital_backend.model.Ocorrencia> items) {
