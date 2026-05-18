@@ -69,6 +69,7 @@ public class DiarioDeObraService {
     if (dto.getData() == null) {
       throw new IllegalArgumentException("O campo 'data' é obrigatório.");
     }
+    
     diarioDeObraRepository.findByObraAndData(obra, dto.getData()).ifPresent(d -> {
       throw new DiarioDuplicadoEx(
           "Já existe um diário para esta obra na data " + dto.getData() + ".");
@@ -278,6 +279,11 @@ public class DiarioDeObraService {
     diario.getFotos().clear();
     diario.getFotos().addAll(incomingHashes);
 
+    // Se o diário estava inválido, ao ser editado volta para avaliação
+    if (diario.getStatus() == DiarioStatus.INVALIDO) {
+        diario.setStatus(DiarioStatus.AGUARDANDO_AVALIACAO);
+    }
+
     // Salva o diário
     diario = diarioDeObraRepository.save(diario);
 
@@ -310,14 +316,28 @@ public class DiarioDeObraService {
 
     DiarioDeObra diario = findDiarioOrThrow(id);
 
-    if (diario.getStatus() != DiarioStatus.AGUARDANDO_AVALIACAO) {
-      throw new DiarioStatusEx(
-          "Só é possível avaliar diários com status 'Aguardando Avaliação'. Status atual: " + diario.getStatus());
+    if (diario.getStatus() == DiarioStatus.VALIDO) {
+      throw new DiarioStatusEx("Não é possível reavaliar um diário que já está com status Válido.");
     }
 
     diario.setStatus(novoStatus);
     diario.setValidador(validador);
     diario.setComentarioValidacao(comentario);
+
+    return new DiarioResponseDto(diarioDeObraRepository.save(diario));
+  }
+
+  @Transactional
+  public DiarioResponseDto retornarAguardando(Long id, User validador) {
+    if (validador.getRole() != UserRole.FISCAL && validador.getRole() != UserRole.GESTOR
+        && validador.getRole() != UserRole.ADMIN) {
+      throw new DiarioEditForbiddenEx("Apenas Fiscal, Gestor ou Administrador podem alterar o status dos diários.");
+    }
+
+    DiarioDeObra diario = findDiarioOrThrow(id);
+
+    diario.setStatus(DiarioStatus.AGUARDANDO_AVALIACAO);
+    diario.setValidador(validador);
 
     return new DiarioResponseDto(diarioDeObraRepository.save(diario));
   }
@@ -505,16 +525,21 @@ public class DiarioDeObraService {
   private void checkEditPermission(DiarioDeObra diario, User currentUser) {
     if (currentUser.getRole() == UserRole.ADMIN) return;
 
-    boolean isLinkedEngineer = diario.getObra().getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
+    if (diario.getStatus() != DiarioStatus.AGUARDANDO_AVALIACAO) {
+      throw new DiarioEditForbiddenEx("Apenas diários com status 'Aguardando Avaliação' podem ser editados. O status deve ser retornado para aguardando antes de editar.");
+    }
 
-    if (!diario.getAutor().getId().equals(currentUser.getId()) && !isLinkedEngineer) {
-      throw new DiarioEditForbiddenEx("Apenas o autor do diário, um engenheiro vinculado à obra ou um Administrador pode editá-lo.");
+    boolean isLinkedEngineer = diario.getObra().getEngenheiros().stream().anyMatch(e -> e.getId().equals(currentUser.getId()));
+    boolean isGestorVinculado = currentUser.getRole() == UserRole.GESTOR && diario.getObra().getCriador() != null && diario.getObra().getCriador().getId().equals(currentUser.getId());
+
+    if (!diario.getAutor().getId().equals(currentUser.getId()) && !isLinkedEngineer && !isGestorVinculado) {
+      throw new DiarioEditForbiddenEx("Apenas o autor do diário, um engenheiro vinculado à obra, o gestor da obra ou um Administrador pode editá-lo.");
     }
 
     long diasDesde = java.time.temporal.ChronoUnit.DAYS.between(diario.getData(), LocalDate.now());
     if (diasDesde > 5) {
       throw new DiarioEditForbiddenEx(
-          "Engenheiros só podem editar diários cuja data seja de no máximo 5 dias atrás. A data deste diário é " + diario.getData() + " (" + diasDesde + " dias atrás).");
+          "Apenas diários com no máximo 5 dias podem ser editados. A data deste diário é " + diario.getData() + " (" + diasDesde + " dias atrás).");
     }
   }
 

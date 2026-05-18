@@ -92,6 +92,16 @@ public class DiarioDeObraController {
     return ResponseEntity.ok(response);
   }
 
+  /** PATCH /diario/{id}/aguardar — Retornar diário para aguardando (FISCAL, GESTOR, ADMIN) */
+  @PatchMapping("/{id}/aguardar")
+  public ResponseEntity<DiarioResponseDto> retornarAguardando(
+          @PathVariable Long id,
+          @AuthenticationPrincipal User currentUser
+  ) {
+    DiarioResponseDto response = diarioDeObraService.retornarAguardando(id, currentUser);
+    return ResponseEntity.ok(response);
+  }
+
   /** DELETE /diario/{id} — Exclusão lógica (ENGENHEIRO autor ≤ 5 dias, ADMIN) */
   @DeleteMapping("/{id}")
   public ResponseEntity<String> delete(
